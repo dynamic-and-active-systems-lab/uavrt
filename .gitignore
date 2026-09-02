@@ -1,0 +1,35 @@
+# ---------------------------------------------------------------------------
+# Component repositories.
+#
+# These are cloned by bootstrap.sh, not tracked here. This repository is a hub:
+# it holds documentation, tooling and the version manifest, and deliberately
+# does NOT vendor or submodule the components. See README.md.
+# ---------------------------------------------------------------------------
+/MavlinkTagController2/
+/TagTracker/
+/uavrt_detection/
+/uavrt_postflight/
+/uavrt_bearing/
+/uavrt_localize/
+/uavrt_localization_utils/
+/uavrt_interfaces/
+/airspy_channelize/
+/airspy_decimate/
+/airspyhf_channelize/
+/csdr-uavrt/
+
+# ---------------------------------------------------------------------------
+# Non-public material: NSF proposals, panel reviews, budgets, unpublished
+# manuscripts, program history. Stays on local disk, never pushed.
+# ---------------------------------------------------------------------------
+/PRIVATE/
+
+# Local scratch: regression baselines, threshold caches, generated configs
+/_baseline/
+
+# macOS
+.DS_Store
+._*
+
+# Local agent settings
+.claude/settings.local.json

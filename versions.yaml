@@ -1,0 +1,100 @@
+# UAV-RT component manifest
+#
+# `branch` is what bootstrap.sh checks out by default — the tip of active
+# development. `verified` records the commit combination last exercised
+# together, for reproducing a known-good state (bootstrap.sh --pinned).
+#
+# Update `verified` when a combination has actually been tested, not merely
+# when something is pushed. A stale-but-honest entry is more useful than a
+# current-but-unverified one.
+
+verified_on: 2026-09-01
+verified_by: "Regression harness (tools/localization_regression.m) and recorded-IQ replay (tools/replay_iq_udp.py). Not a flight test."
+
+components:
+
+  # --- Companion computer and ground station -------------------------------
+  MavlinkTagController2:
+    url: https://github.com/DonLakeFlyer/MavlinkTagController2
+    branch: main
+    verified: 4fb5e85
+    owner: DonLakeFlyer
+    role: MAVLink controller, decimator, ZMQ publisher, Python detector, IQ simulator
+    note: Most actively developed component. Unpaid volunteer maintainer; changes go via pull request.
+
+  TagTracker:
+    url: https://github.com/DonLakeFlyer/TagTracker
+    branch: master
+    verified: 764132380
+    owner: DonLakeFlyer
+    role: Ground control station, a QGroundControl custom build
+
+  # --- Detection ------------------------------------------------------------
+  uavrt_detection:
+    url: https://github.com/dynamic-and-active-systems-lab/uavrt_detection
+    branch: main
+    verified: 766a385
+    role: Primary detector, MATLAB to C++ via MATLAB Coder
+    note: ROS2 support removed 2026-09-01 on branch remove-ros2; merge to main pending flight test.
+
+  # --- Signal path (Airspy Mini) --------------------------------------------
+  csdr-uavrt:
+    url: https://github.com/DonLakeFlyer/csdr-uavrt
+    branch: master
+    verified: 90a9b14
+    role: Provides fir_decimate_cc in the Mini pipeline
+
+  airspy_channelize:
+    url: https://github.com/dynamic-and-active-systems-lab/airspy_channelize
+    branch: main
+    verified: 613a5f8
+    role: 375 kSPS to 100 channels at 3750 SPS
+
+  # --- Localization ---------------------------------------------------------
+  uavrt_bearing:
+    url: https://github.com/dynamic-and-active-systems-lab/uavrt_bearing
+    branch: main
+    verified: c0384ae
+    role: PCA bearing estimation, antenna-agnostic
+    note: Committed codegen is stale — see docs/SOFTWARE_CONTEXT.md section 9b.
+
+  uavrt_localize:
+    url: https://github.com/dynamic-and-active-systems-lab/uavrt_localize
+    branch: main
+    verified: 251d29d
+    role: Triangulation from bearings, Lenth 1981 estimators
+
+  uavrt_localization_utils:
+    url: https://github.com/dynamic-and-active-systems-lab/uavrt_localization_utils
+    branch: main
+    verified: 8dc1635
+    role: Shared MATLAB utilities; a submodule of both repos above
+    note: Cloned standalone here for reference only. The copies that matter are the submodules.
+
+  uavrt_postflight:
+    url: https://github.com/dynamic-and-active-systems-lab/uavrt_postflight
+    branch: main
+    verified: 0def7d5
+    role: Post-flight analysis, plotting, KMZ export
+
+  # --- Reference only, not built --------------------------------------------
+  airspy_decimate:
+    url: https://github.com/dynamic-and-active-systems-lab/airspy_decimate
+    branch: main
+    verified: c5d4b80
+    role: MATLAB Coder equivalent of csdr-uavrt's decimation
+    status: abandoned — not referenced by MavlinkTagController2; may be useful for bench work
+
+  airspyhf_channelize:
+    url: https://github.com/dynamic-and-active-systems-lab/airspyhf_channelize
+    branch: main
+    verified: 6be30d7
+    role: Ancestor of airspy_channelize, from the HF+ era
+    status: incomplete — an unfinished attempt at Airspy HF+ support, never fully tested
+
+  uavrt_interfaces:
+    url: https://github.com/dynamic-and-active-systems-lab/uavrt_interfaces
+    branch: main
+    verified: cafb0f5
+    role: ROS2 message definitions
+    status: archived on GitHub — reference only
