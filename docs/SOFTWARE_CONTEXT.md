@@ -423,6 +423,25 @@ This is not specific to `uavrt_bearing`. Every MATLAB Coder repo here commits ge
 
 **Current state of `uavrt_bearing` codegen:** does not complete. Two Coder restrictions found and one fixed; the next is the struct/table type conflict at `readpulsecsvtable.m:22-23` versus `:270`. `tools/probe_table_types.m` measures the column types the fix needs. Restoring it is tracked as separate work — the tail is unknown, and it is not a regression from the consolidation.
 
+### What `uavrt_bearing` and `uavrt_localize` actually contain
+
+*Established 2026-09-02. Both repos are dormant — nothing in `MavlinkTagController2` or elsewhere in the tree references them — but they are **not** superseded, and the PI intends to revisit them. Do not archive, move or delete them without asking.*
+
+`BearingCalculator.cpp` does not replace them. It never touches a file: rotation slices accumulate in memory during flight (`heading_deg`, `snr_db`, `tag_id` per pulse) and are fed to `addSlice()` / `solve()` when the rotation stops, with the answer going straight to the GCS as a `BEARING_RESULT` tunnel message. It writes `bearing_result.log` as a record, never reads it. The MATLAB path is file-driven throughout: `bearing.m` reads a pulse CSV, `localize.m` reads a bearing CSV.
+
+Four things in those repos have no equivalent anywhere else in the project:
+
+| File | What it is |
+|---|---|
+| `doapca.m` | PCA bearing estimate (Shafer 2019). Antenna-agnostic, and applies the antenna mounting offset — which `BearingCalculator` never receives. |
+| `localizefrombearings.m` | **All three Lenth (1981) estimators, fully implemented**, 258 lines: MLE (iterative, convergence guard, NaN on failure), RMR (pairwise ray intersections, median per ray then median of medians), and MEST (Andrews psi at c = 1.5 with von Mises κ from the mean resultant length). The only triangulation in the project. Header documents Lenth's X-East/Y-North compass convention and what to swap for other frames. |
+| `vincentydistance.m` / `vincentyendpoint.m` | Proper geodesics — more rigorous than `uavrt_postflight`'s flat-earth approximation. |
+| `latlon2eastnorth.m` | The frame conversion the above depend on. |
+
+**A comparison of `BearingCalculator` against `doapca` is not a matter of pointing both at one file** — they have no common input interface. It needs a harness that parses a pulse log and calls `addSlice()`. `controller/tests/test_bearing_calculator.cpp` already does exactly this with synthesised data drawn from the real RA-2AK pattern via `patternLinear()`, so extending it to read a CSV is the short path.
+
+**Watch the reference frames when comparing.** `BearingCalculator` receives only `heading_deg`; `doapca` uses `curr_yaws + curr_antennaOffsets`. If the antenna is not aligned with vehicle heading the two work in different frames, and the constant offset would look like an accuracy disagreement when it is not.
+
 ### Suggested consolidation order
 
 Both antenna families stay, and both directional bearing methods stay. Consolidation here means removing **duplication and defects**, not implementations.

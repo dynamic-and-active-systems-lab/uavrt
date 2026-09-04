@@ -68,7 +68,7 @@ not direct pushes.
 
 ## The MATLAB Coder loop
 
-Claude edits `.m` sources → **Michael runs codegen in MATLAB** → Michael commits. Source edits and
+The agent edits `.m` sources → **Michael runs codegen in MATLAB** → Michael commits. Source edits and
 regenerated `codegen/` go in **separate commits** so the source change stays reviewable.
 
 For `uavrt_detection`: add `matlab-coder-utils/c-udp` to the MATLAB path, delete `codegen/`, run
