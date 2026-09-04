@@ -1,6 +1,6 @@
 # Field Review — post-flight analysis on the Herelink
 
-**Status:** design settled, not yet built. Prototype next.
+**Status:** Python prototype built and validated, 2026-09-04. See §6a. Next: ask Don (§8).
 **Created:** 2026-09-02, from a working session with the PI.
 **Spans:** `uavrt_postflight` (prototype) and `TagTracker` (delivery).
 
@@ -117,6 +117,33 @@ Build it in `uavrt_postflight/python/` as a separate entry point. Do not grow `p
 Test data is outside the repo, under `…/OneDrive-…/FLIGHT_TESTING_DATA/`. Known-good cases from `uavrt_postflight/CLAUDE.md`: `2025-11-21-Cumbria-Day5-Fri` (4 tags, known tag position), `2023-08-18-NAVHDA Site` (headerless, plus rotation rows), `2025-01-13-Raymond Park Scan Flights`.
 
 **Constraint:** MATLAB cannot be assumed. Verify numerics by transliteration and by running against real logs, and say which method was used. Never claim MATLAB code has been tested.
+
+### 6a. Prototype results, 2026-09-04
+
+Built: `uavrt_postflight/python/fieldreview.py` (entry point), primitives in `analysis.py`,
+`dem.py` and `validate_fieldreview.py` for validation, `test_fieldreview.py`. Full report
+with the methods and their maths: `uavrt_postflight/DOCS/fieldreview-prototype.pdf`.
+MATLAB never ran; everything is Python against real logs and synthetic surfaces.
+
+Answers to the four questions above:
+
+1. **Grid spacing:** half the median pulse spacing, held between 60 and 300 cells across the
+   longer side, floor 1 m. Chose 2.2–7.4 m on every survey on disk. The reported position does
+   not depend on it: a linear interpolant's maximum is at a vertex, so the strongest signal is
+   always a (smoothed) pulse position. Smoothing moves it; the grid does not.
+2. **Contours:** the raster alone finds the peak; contours add shape at no cost. Keep, switchable.
+3. **Two lobes:** local maxima ranked by height, kept when within 10 dB of the strongest and
+   with topographic prominence ≥ 2 dB, at most three. At the 3 dB window first proposed no real
+   flight ever reported a second lobe. Also flagged: a *weak* surface (peak < 10 dB above the
+   surface median) and a peak on the *edge* of the flown area.
+4. **Against truth:** Cumbria tag 42, three surveys: 30, 22, 41 m, all NE, all 3–7 m lower than
+   the tag. Ponui case 2, three flights: 119 → 36 → 22 m, final peak 2.5 m lower. Ponui case 1,
+   four flights: 195 → 158 → 42 → 23 m, final peak 11 m lower. Downhill as the paper predicts,
+   on every well-sampled flight with the tag inside the survey.
+
+Two findings for the TagTracker side: the convex hull stretches the surface over never-flown
+wedges wherever there is a transit leg, so the spatial box matters more than it looked; and the
+bearing's confidence collapses on a bullseye, which is fine, it means the peak is the answer.
 
 ## 7. Delivering it in TagTracker
 
