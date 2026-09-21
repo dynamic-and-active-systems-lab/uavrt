@@ -91,11 +91,33 @@ against the warm cache in `_baseline/thresholds/`, or comparisons are meaningles
 
 Procedure is in `docs/CLEANUP_TASK_PLAN.md`, Task 0.
 
+## How work gets done: the planning session and the tasks
+
+Two Claude sessions work on this project and cannot see each other's conversation.
+
+The **planning session** is the one Michael talks to, running in Cowork. It writes the
+plans and the task briefs and keeps the documents in `docs/`. It reaches this repository
+through a network mount, so large git commands are slow there, and it cannot build the
+app or push to GitHub.
+
+A **task** is one Claude Code run on Michael's Mac, started by a slash command such as
+`/1-1`, with the command files in `.claude/commands/`. Tasks do the code, the builds and
+the device work. Each starts with no memory of any other conversation.
+
+The two talk through `docs/TASK_COMMS.md`. Every task appends an entry there when it
+finishes, including a task with nothing to ask. Read that file's "Decisions already
+made" before writing code: it carries the things settled in conversation that are not
+obvious from the source.
+
+`docs/WRITING_RULES.md` governs everything either session writes for a person to read.
+
 ## Context documents
 
 | File | Contents |
 |---|---|
 | `docs/SOFTWARE_CONTEXT.md` | **The system reference.** Read first. |
+| `docs/TASK_COMMS.md` | How the two sessions talk, and what has already been decided. |
+| `docs/WRITING_RULES.md` | How to write anything a person will read. |
 | `docs/CLEANUP_TASK_PLAN.md` | Cleanup work: what is done, what is open, and the verification procedure. |
 | `PRIVATE/PROJECT_CONTEXT.md` | Program and proposal history. Not needed for code work. |
 | `uavrt_postflight/CLAUDE.md` | That repo's own hazards and working notes. |
