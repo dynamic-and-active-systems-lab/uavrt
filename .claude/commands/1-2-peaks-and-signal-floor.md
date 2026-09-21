@@ -1,6 +1,7 @@
 ---
 description: "Task 1-2 — field review C++ core: strongest-signal position, other lobes, and the signal floor"
 model: opus
+effort: high
 ---
 
 Read these first, in this order:

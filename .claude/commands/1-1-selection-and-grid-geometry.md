@@ -1,6 +1,7 @@
 ---
 description: "Task 1-1 — field review C++ core: selection filters, flight window, grid spacing, build wiring and the test harness"
 model: sonnet
+effort: medium
 ---
 
 Read these first, in this order:

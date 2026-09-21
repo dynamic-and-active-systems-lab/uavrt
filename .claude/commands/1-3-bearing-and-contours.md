@@ -1,6 +1,7 @@
 ---
 description: "Task 1-3 — field review C++ core: the bearing estimate and contour lines"
 model: sonnet
+effort: medium
 ---
 
 Read these first, in this order:
