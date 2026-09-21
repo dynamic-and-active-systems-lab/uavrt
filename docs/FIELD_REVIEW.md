@@ -1,9 +1,11 @@
 # Field Review — post-flight analysis on the Herelink
 
-**Status:** Python prototype built and validated, 2026-09-04 (§6a). Open questions answered by the
-PI 2026-09-12 (§9). Don Gagne asked and answered 2026-09-12: **branch, integrate, PR** — §8.
-Rotation-file bearings are **deferred to phase 2** (§4a); phase 1 is the original scope plus the
-signal-strength floor and sub-vertex peak refinement.
+**Status:** Phase 1 Python complete, 2026-09-21 — the signal-strength floor is built and validated
+against the real logs (§6b). Prototype built and validated 2026-09-04 (§6a); open questions answered
+by the PI 2026-09-12 (§9) and 2026-09-21 (§9a). Don Gagne asked and answered 2026-09-12: **branch,
+integrate, PR** — §8. Rotation-file bearings are **deferred to phase 2** (§4a).
+**Sub-vertex peak refinement was dropped by the PI on 2026-09-21** — §3. Phase 1 is therefore the
+original scope plus the signal-strength floor. Next is the TagTracker integration, §8 step 6.
 
 **Created:** 2026-09-02, from a working session with the PI.
 **Spans:** `uavrt_postflight` (prototype) and `TagTracker` (delivery).
@@ -94,12 +96,23 @@ quantisation is worth single-digit metres of that. Sub-vertex refinement buys a 
 visibly jump between pulse positions as the selection changes, and an honest surface shape. It will
 not find the tag.
 
-The recommended shape, which is cheap and degrades gracefully:
+**Dropped by the PI, 2026-09-21.** *"I don't think I want to use curved fits on the pulse data
+because it introduces unnecessary complications. I think we should just use the linear interpolation
+between points as was done in the prototype python pulseplotter."* Linear interpolation stays,
+everywhere, and the reported position stays a pulse position. Note what that means: refinement is
+not simplified by this, it is removed, because a piecewise-planar surface has no peak between
+samples to report.
 
-- Keep **linear interpolation for the displayed raster**. It is bounded and cannot overshoot.
-- Compute the **reported** peak by fitting a local quadratic in ENU to the pulses within a radius of
-  the best vertex and taking the stationary point. Reject it and fall back to the vertex if the fit
-  is not concave, or if the stationary point falls outside the neighbourhood it was fitted to.
+What it costs, and why it is the right call anyway. The reported position now steps from one pulse
+to the next as the operator changes the selection, rather than sliding; the step is the pulse
+spacing, 4 to 15 m on the logs on disk, against a measured error of 22 to 41 m. What it buys is
+worth more than that. A fit invents signal — on a worked three-point example the fitted crest read
+0.6 dB above the strongest pulse ever received — while a vertex cannot, so "strongest signal here"
+now always means a place the aircraft flew and a strength it actually heard. It also keeps a
+least-squares solver out of the analysis core that §7 says must stay small and Qt-free.
+
+The two guards the fit would have needed are recorded in §9a, because the same conditioning problem
+would return if anyone revisits this.
 
 Do **not** reach for a global smooth interpolant — thin-plate spline, biharmonic, RBF — for the
 displayed surface. They ring and overshoot near data gaps, and §6a already found that the convex
@@ -121,6 +134,13 @@ test already uses, so the floor and the lobe report agree by construction.
 
 The floor is a *display and reporting* control, not a filter on the fit: it must not silently change
 the interpolated surface underneath, or the peak would move as the operator drags the slider.
+
+**Built 2026-09-21.** `analysis.signal_floor` returns a mask and never a surface, which is what makes
+the paragraph above structurally true rather than a thing to be careful about; `analysis.apply_floor`
+blanks a copy for drawing. `fieldreview.py` takes `--floor DB` and `--no-floor`. Two details found in
+the build: the colour scale has to be pinned to the whole surface, or colours shift meaning as the
+slider moves; and contour levels below the floor have to be dropped with it, or the lines re-clutter
+exactly the area the floor just cleared. Results and the coverage the default gives are in §6b.
 
 ### Bearing
 A single bearing computed from the current selection, with a confidence indication. Advanced position estimation can come later.
@@ -241,6 +261,47 @@ Two findings for the TagTracker side: the convex hull stretches the surface over
 wedges wherever there is a transit leg, so the spatial box matters more than it looked; and the
 bearing's confidence collapses on a bullseye, which is fine, it means the peak is the answer.
 
+### 6b. Phase 1 results, 2026-09-21
+
+The signal floor, built on top of §6a. Validated in Python against the seventeen cases in
+`validate_fieldreview.py`; MATLAB never ran. `python/test_fieldreview.py` carries the checks.
+
+**Nothing moved.** Every published number in §6a reproduces exactly with the floor in place:
+Cumbria tag 42 at 30, 22 and 41 m, Ponui case 1 at 195 → 158 → 42 → 23 m, Ponui case 2 at
+119 → 36 → 22 m. The reported position, the bearing and the interpolated surface are bit-identical
+at floors of 3, 6, 10, 20 and 30 dB and with the floor off, which is the test that proves the floor
+never reached the fit.
+
+**10 dB is the right default.** Coverage is the share of the flown surface that still draws as
+signal, over the twelve cases whose surface is not flagged weak:
+
+| Floor | Median coverage | Range | Median signal area |
+|---|---|---|---|
+| 3 dB | 1.2% | 0.5–2.8% | 1 400 m², ~43 m across |
+| 6 dB | 4.0% | 1.9–7.4% | 4 100 m², ~72 m across |
+| **10 dB** | **9.3%** | **4.3–21.9%** | **9 700 m², ~111 m across** |
+| 15 dB | 25.3% | 9.7–57.2% | 24 000 m², ~175 m across |
+| 20 dB | 49.0% | 17.2–74.7% | 48 000 m², ~247 m across |
+
+At 3 dB the signal area is smaller than the error on the position it marks, which would read as
+noise on a 7-inch screen. At 20 dB it is half the survey and has stopped decluttering. The default
+leaves one compact island with the track still visible around it, which is what §9 question 2 asked
+for.
+
+**On a weak surface the floor does not declutter, and should not.** The five flights flagged weak
+keep 55–96% of their surface at 10 dB, because a surface with little contrast has little to
+suppress. The weak-surface warning is the right answer there, not a deeper floor.
+
+**The floor and the lobe report do not collide** — §9a's second question. Across all seventeen
+cases, zero of the thirteen reported lobes fell below the 10 dB floor, and that is structural
+rather than lucky: `find_peaks` keeps a lobe when it is no more than `within_db` under the peak,
+and the floor keeps a cell at or above that same level, so with both at 10 dB a reported lobe is
+always visible. A test asserts it on a two-lobe surface whose second lobe sits exactly on the
+window edge. The operator can still raise the floor past a lobe by hand; the marker is drawn
+regardless of the floor and the report says the shape underneath is hidden.
+
+---
+
 ## 7. Delivering it in TagTracker
 
 **Do not start this until the prototype settles and Don Gagne has been asked.** See §8.
@@ -291,9 +352,10 @@ macOS is a supported Qt host for Android builds but less trodden than the CI's L
 2. Python prototype against real logs. Done, 2026-09-04 — §6a.
 3. PI review of the open questions. Done, 2026-09-12 — §9.
 4. Ask Don how he wants the TagTracker side handled. Done, 2026-09-12 — see below.
-5. **Phase 1, Python:** signal-strength floor and sub-vertex peak refinement, on top of the existing
-   prototype. **Next.**
+5. **Phase 1, Python:** signal-strength floor, on top of the existing prototype. Done, 2026-09-21 —
+   §6b. Sub-vertex peak refinement was dropped by the PI the same day; see §3.
 6. **Phase 1, TagTracker:** branch in a fork, integrate against `analyzePages` (§7), PR to Don.
+   **Next.**
 7. **Phase 2:** rotation-file bearings, and the three log changes they depend on. §4a.
 
 **Don's answer, 2026-09-12.** Asked whether he wanted this upstream or carried on a fork, he said to
@@ -362,16 +424,29 @@ needs. Do not build the handoff.
 
 ### 9a. New questions, raised by those answers
 
+**Answered 2026-09-21**, the first two by the PI's decision to drop the curved fit and by the build
+that followed.
+
 - **What does the local quadratic fit use as its neighbourhood radius,** and does it behave on a
   bullseye — the case §6a found where the bearing's confidence collapses because the aircraft
-  circled the tag? A fit centred on a vertex with data all around it is the well-posed case; a fit
-  centred on a vertex at the edge of the flown area is not, and §6a's edge-of-survey flag should
-  probably suppress refinement entirely rather than report a refined peak.
-- **Does the dB-below-peak floor interact badly with the second-lobe report?** At a 10 dB floor and
-  a 10 dB lobe window they are the same threshold, so a reported second lobe sits exactly at the
-  edge of visibility. That may be the right coupling or it may mean a lobe the operator is told
-  about but cannot see. Decide deliberately.
-- **Will Don take the rotation-log changes (§4a)?** Still unknown, and now a phase 2 question rather
-  than a blocker on anything being built. If he declines, phase 2 shrinks to reading rotation files
-  within the current app session only — materially smaller, and worth scoping as such rather than
-  building and then discovering.
+  circled the tag? **Moot: the fit was dropped (§3), and the answer is part of why.** The question
+  assumed a bullseye is the well-posed case. It is not. When the aircraft circles the tag, the
+  pulses near the peak vertex lie along the arc, so they are locally almost collinear and the fit
+  has no information about curvature in the radial direction — which is the direction the tag lies
+  in. The stationary point can then run anywhere along that line, and a concavity test does not
+  catch it; a conditioning test on the design matrix would be needed as well. The edge-of-survey
+  case is real too, and `find_peaks` already flags it as `on_edge`. Two guards, each needed, on a
+  correction worth single-digit metres against a 22–41 m error. Anyone revisiting this should start
+  here.
+- **Does the dB-below-peak floor interact badly with the second-lobe report?** **No, and the
+  coupling is the right one.** Decided deliberately and then measured: zero of thirteen reported
+  lobes fell below the 10 dB floor across all seventeen validation cases, because the two rules use
+  the same level and a reported lobe is therefore always at or above the floor. §6b has the
+  reasoning and the test. The remaining case — an operator raising the floor past a lobe by hand —
+  is handled by drawing lobe markers above the floor whatever it is set to, and saying in the
+  report that the shape underneath is hidden.
+- **Will Don take the rotation-log changes (§4a)?** Still unknown, and a phase 2 question rather
+  than a blocker on anything being built. Not to be raised until the phase 1 pull request is in
+  flight (§8). If he declines, phase 2 shrinks to reading rotation files within the current app
+  session only — materially smaller, and worth scoping as such rather than building and then
+  discovering.
