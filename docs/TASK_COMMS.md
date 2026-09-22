@@ -105,6 +105,36 @@ that was validated against flights with known tag positions. Every porting task 
 the specific logs and the specific numbers it must reproduce, and a task that cannot run
 that comparison reports `Partial` rather than `Done`.
 
+**Building and running TagTracker on the Mac.** Established 2026-09-22, and the project's
+older build notes are wrong, so use this instead.
+
+```
+cd ~/Developer/uavrt/TagTracker
+export QT_ROOT_DIR=~/Qt/6.11.1/macos
+cmake --preset macOS-debug
+cmake --build --preset macOS-debug
+ctest --preset macOS-debug            # unit tests, debug builds only
+open build/macOS-debug/Debug/TagTracker.app
+```
+
+Four things that cost time to find. The build needs Qt 6.11.1 exactly: 6.11.0 is the
+minimum and 6.11.1 the maximum, checked as a hard error. It needs Homebrew's pkgconf,
+ccache, nasm, mold, just and create-dmg. It needs Python 3.10 or newer on the path, which
+macOS does not supply, and it needs `uv` to build its own virtual environment under
+`tools/.venv`; once that exists the Python path no longer matters. And there are two
+bundles in the build directory: the runnable one is under `Debug/`, while the one at the
+top level holds only QML files and will not launch.
+
+GStreamer must stay enabled. Turning it off compiles out the body of the GStreamer test
+but not its declarations, so the link fails on missing test symbols. CMake downloads
+GStreamer itself and no separate install is needed.
+
+`docs/FIELD_REVIEW.md` section 7 and `docs/SOFTWARE_CONTEXT.md` section 8 both describe an
+older build: Qt 6.6.3, Android minimum SDK 25, a `herelink-linux.yml` workflow, and two git
+submodules. None of that is true now. Android minimum SDK is 28, which is Android 9, so
+whether the Herelink can run a current build is an open question. Correct those documents
+when you touch them.
+
 **Open question, not yet decided: how the triangulation gets into the build.** The
 interpolated surface needs a Delaunay triangulation, which is the standard way of
 joining scattered points into triangles so a value can be interpolated inside each one.
