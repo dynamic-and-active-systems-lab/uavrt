@@ -105,6 +105,9 @@ that was validated against flights with known tag positions. Every porting task 
 the specific logs and the specific numbers it must reproduce, and a task that cannot run
 that comparison reports `Partial` rather than `Done`.
 
+**Don Gagne approved the telemetry pairing plan on 2026-09-23**, including Claude writing it.
+Task 0-1 is cleared to run and to become its own pull request from branch `telemetry-pairing`.
+
 **Don Gagne will not accept changes outside `custom/`.** Said on 2026-09-23, when Michael
 proposed the telemetry pairing work. He has removed almost every patch TagTracker carried against
 upstream QGroundControl, because they make it painful to follow new QGC releases, and he has one
