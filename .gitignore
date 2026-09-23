@@ -33,3 +33,7 @@
 
 # Local agent settings
 .claude/settings.local.json
+
+# Sketches and drafts, deliberately not tracked.
+/scratch/
+Claude outputs/
