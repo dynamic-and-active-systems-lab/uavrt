@@ -105,6 +105,32 @@ that was validated against flights with known tag positions. Every porting task 
 the specific logs and the specific numbers it must reproduce, and a task that cannot run
 that comparison reports `Partial` rather than `Done`.
 
+**Don Gagne will not accept changes outside `custom/`.** Said on 2026-09-23, when Michael
+proposed the telemetry pairing work. He has removed almost every patch TagTracker carried against
+upstream QGroundControl, because they make it painful to follow new QGC releases, and he has one
+left that he wants gone. Any task that finds itself wanting to edit `src/` should stop and report
+`Blocked` instead. He is happy with anything in the custom plugin.
+
+**Two words that were being used loosely, now fixed.** A *flight telemetry recording* is the
+`.tlog` QGroundControl writes, from the first heartbeat after a vehicle connects until the last
+vehicle disappears. A *pulse detection run* is one press of start detection to one press of stop,
+producing one `Pulse-*.csv`. One recording can contain several runs. Do not write "session".
+
+**A telemetry file's start time is its first eight bytes.** A `.tlog` is a sequence of records
+each beginning with a 64-bit big-endian microsecond timestamp; `src/Comms/LogReplayLink.cc` line
+319 reads exactly that. The file's name is its *stop* time, which is why pairing by filename
+fails. Reading the start from the file is what lets custom code pair logs without asking
+QGroundControl anything.
+
+**The telemetry file is written continuously, but saved only at the end.** Every message is
+appended to a temp file with a random name as it arrives. The named file in `Telemetry/` does not
+exist until the last vehicle disconnects, so nothing can copy it before then.
+
+**The field review does not need the telemetry file.** Every pulse row carries its own latitude,
+longitude and altitude, so the map, the surface and the reported position come from the pulse log
+alone. The telemetry file only adds the parts of the flight where no pulses were heard. A flight
+review works with the vehicle still connected and the telemetry file not yet saved.
+
 **Building and running TagTracker on the Mac.** Established 2026-09-22, and the project's
 older build notes are wrong, so use this instead.
 
