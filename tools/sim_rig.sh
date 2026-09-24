@@ -19,6 +19,9 @@
 #
 # The VM is reached with `ssh $UAVRT_VM` (default parallels@192.168.0.136), which
 # must work without a password prompt; see the "uavrt-vm" entry in ~/.ssh/config.
+# The key is ECDSA P-256 because this Mac's managed ssh policy
+# (/etc/ssh/crypto.conf) accepts no other key type; an ed25519 key is silently
+# never offered.
 # To watch a process live: ssh -t parallels@192.168.0.136 tmux attach -t rig-controller
 # (or rig-px4 for the PX4 shell); detach with Ctrl-b d.
 #
@@ -54,7 +57,7 @@ if ! "${SSH[@]}" true 2>/dev/null; then
 error: cannot ssh to $VM without a password.
   Check the VM is running and at that address (prlctl list -a shows its state).
   If the key is not installed yet, run once, entering the VM password:
-    ssh-copy-id -o BatchMode=no -i ~/.ssh/id_ed25519_uavrt_vm.pub $VM
+    ssh-copy-id -o BatchMode=no -i ~/.ssh/id_ecdsa_uavrt_vm.pub $VM
 EOF
     exit 1
 fi

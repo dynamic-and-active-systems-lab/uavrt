@@ -186,6 +186,23 @@ recommends the first. Until Michael answers, no task should implement the surfac
 
 ## Open — waiting on the planning session
 
+### Task 0-2, correction — 2026-09-23 — Partial
+The key install command in the entry below is wrong: it names an ed25519 key, and this Mac
+never uses one. Its managed ssh policy (`/etc/ssh/crypto.conf`, from Apple's security
+compliance baseline) accepts only ECDSA P-256 keys, so ssh loaded the ed25519 key and never
+offered it to the VM. Michael installed that key and still got "Permission denied". The
+rig now uses `~/.ssh/id_ecdsa_uavrt_vm`, and `~/.ssh/config` and `tools/sim_rig.sh` point
+at it. The correct command is
+`ssh-copy-id -o BatchMode=no -i ~/.ssh/id_ecdsa_uavrt_vm.pub parallels@192.168.0.136`.
+
+**For the planning session**
+1. Any future brief that has a task make an ssh key on this Mac should say ECDSA P-256.
+
+**For Michael**
+1. The unused ed25519 key is still in the VM's `~/.ssh/authorized_keys`, and its key pair
+   `~/.ssh/id_ed25519_uavrt_vm` is still on the Mac. Neither does anything; delete them if
+   you want them gone.
+
 ### Task 0-2 — 2026-09-23 — commit 3d1ddf5 — Partial
 Stopped at step 1, passwordless ssh. I made a key without a passphrase
 (`~/.ssh/id_ed25519_uavrt_vm`) and added a host entry for the VM to `~/.ssh/config`, but
