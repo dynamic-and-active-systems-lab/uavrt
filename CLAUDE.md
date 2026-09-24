@@ -52,9 +52,14 @@ not direct pushes.
 4. **`OLD_CODE/` is an archive, never live code.** It is gitignored and local-only. Do not treat
    anything in it as current, and do not delete it — it is deliberately kept as a record of how the
    current design was reached.
-5. **Check tunnel-protocol submodule SHA parity** across `TagTracker/custom/tunnel-protocol` and
-   `MavlinkTagController2/tunnel-protocol` before debugging any comms problem. If they diverge, the
-   GCS and the aircraft silently disagree about the wire format.
+5. **Check tunnel-protocol pin parity before debugging any comms problem.** `TunnelProtocol.h` is
+   the shared header defining every message TagTracker and the controller exchange. It is **no
+   longer a git submodule in either repo** — both fetch it through CPM at a pinned commit. Compare
+   the `GIT_TAG` under `NAME TunnelProtocol` in `TagTracker/custom/CMakeLists.txt` against the one
+   in `MavlinkTagController2/CMakeLists.txt`. Both are currently `81ed30ac`. If those two lines
+   differ, the GCS and the aircraft silently disagree about the wire format. The
+   `custom/tunnel-protocol/` directory still present in a TagTracker working tree is an untracked
+   leftover clone, not the copy the build uses.
 6. **Prefer the simulator** (`MavlinkTagController2 --simulator`) over assuming hardware.
 
 ## What the agent cannot do
@@ -81,6 +86,7 @@ with no SDR, no Pi and no channelizer.
 
 | Tool | Purpose |
 |---|---|
+| `tools/sim_rig.sh` | Starts, stops and reports on the whole simulated aircraft in the Parallels VM: PX4 SITL plus `MavlinkTagController2 --simulator`, each in its own tmux session. `start`, `stop`, `status`, `logs`. **Use this before reaching for hardware.** |
 | `tools/replay_iq_udp.py` | Replays a `data_record.*.bin` over UDP, synthesising the per-datagram timestamp and pacing at the configured rate |
 | `tools/summarize_detections.py` | Extracts run-invariant detection results from a diary log; diffs two runs |
 | `tools/test_config_roundtrip.m` | Verifies `DetectorConfig` write/read symmetry |

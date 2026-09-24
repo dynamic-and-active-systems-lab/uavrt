@@ -70,7 +70,7 @@ Three tiers, connected by two well-defined interfaces.
 └─────────────────────────────────────────────────────────┘
 ```
 
-**Critical invariant:** `TunnelProtocol.h` is a git submodule in *both* TagTracker (`custom/tunnel-protocol`) and MavlinkTagController2 (`tunnel-protocol`), pointing at `DonLakeFlyer/TagTrackerTunnelProtocol`. Both are currently at `af114d8`. **If these two SHAs diverge, the GCS and the aircraft will silently disagree about the wire format.** Check this first when debugging inexplicable comms behavior.
+**Critical invariant:** `TunnelProtocol.h` is shared by TagTracker and MavlinkTagController2 and defines every message they exchange. **It is no longer a git submodule in either.** Both fetch it through CPM from `DonLakeFlyer/TagTrackerTunnelProtocol` at a commit pinned in CMake: the `GIT_TAG` under `NAME TunnelProtocol` in `TagTracker/custom/CMakeLists.txt` and in `MavlinkTagController2/CMakeLists.txt`. Both are currently `81ed30ac`. **If those two lines differ, the GCS and the aircraft will silently disagree about the wire format.** Check this first when debugging inexplicable comms behavior. Verified 2026-09-23: both builds fetched a byte-identical header.
 
 ---
 
@@ -159,7 +159,7 @@ detector(s) on UDP 10000 (primary) / 10001 (secondary)
 
 ### Simulator path
 
-`--simulator [preset]` replaces the SDR with `simulator/iq_simulator.py`, publishing wire-compatible IQ on the same ZMQ port; the decimator runs with `--shift-khz 0` (no hardware spur to dodge). Presets: `strong`, `weak`, `noise-only`, `two-tags`, `distant`, `dropout`, `gap`. Tag parameters from the MAVLink tag database map to `--freq-offset-hz`, `--tp`, `--tip`. **This is the fastest way to exercise the full pipeline without hardware and should be the default for development work.**
+`--simulator [preset]` replaces the SDR with `simulator/iq_simulator.py`, publishing wire-compatible IQ on the same ZMQ port; the decimator runs with `--shift-khz 0` (no hardware spur to dodge). Presets are two different lists. The controller's `--simulator [preset]` argument takes a **signal level**: `strong`, `moderate`, `marginal`, `below-marginal`, `silent`, `competing`, `power-line`. The older names — `weak`, `noise-only`, `two-tags`, `distant`, `dropout`, `gap`, `rate-switch` — are **simulator scenarios**, used only when no tags have been uploaded, and TagTracker always uploads tags before starting detection. Tag parameters from the MAVLink tag database map to `--freq-offset-hz`, `--tp`, `--tip`. **This is the fastest way to exercise the full pipeline without hardware and should be the default for development work.**
 
 ---
 
@@ -230,7 +230,6 @@ System packages: `build-essential git cmake pkg-config libboost-all-dev libzmq3-
 
 ```bash
 cd ~/repos/MavlinkTagController2
-git submodule update --init --recursive     # tunnel-protocol
 make                                        # controller + decimator + airspyhf_zeromq
 ./setup_venv.sh                             # .venv: numpy>=2.0, pyzmq>=25.0, scipy>=1.12
 ```
@@ -241,7 +240,7 @@ Pixhawk config: `MAV_1_CONFIG`=TELEM2, `MAV_1_MODE`=Onboard, `MAV_1_FORWARD`=On,
 
 ### GCS
 
-Standard QGroundControl custom build: Qt 6, CMake, Ninja. All third-party deps (SDL2, exiv2, GeographicLib, shapelib, ulog_cpp, libevents, zlib, expat, …) are fetched by CPM at configure time — **do not clone them.** Submodules needed: `custom/tunnel-protocol` and `src/FirmwarePlugin/APM/ArduPilot-Parameter-Repository`. Android/Herelink builds define `TAG_TRACKER_HERELINK_BUILD`.
+Standard QGroundControl custom build. **No git submodules are needed; the repository has no `.gitmodules` at all.** Everything, including `TunnelProtocol.h` and the ArduPilot parameter repository, is fetched by CPM at configure time — **do not clone them.** The working build recipe, the Qt version pin and the Homebrew packages it needs are in `docs/TASK_COMMS.md`; the Qt 6.6.3 and Android minimum SDK 25 figures in older notes are years out of date.
 
 ### MATLAB Coder repos — the standard pattern
 

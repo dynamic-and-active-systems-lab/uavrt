@@ -105,6 +105,24 @@ that was validated against flights with known tag positions. Every porting task 
 the specific logs and the specific numbers it must reproduce, and a task that cannot run
 that comparison reports `Partial` rather than `Done`.
 
+**There is a simulated aircraft; use it before reaching for hardware.** Built by task 0-2 and
+run from the Mac with `tools/sim_rig.sh start`, `status`, `stop` and `logs`. It brings up PX4
+SITL and `MavlinkTagController2 --simulator` in the Parallels VM at 192.168.0.136, each in its
+own tmux session so they outlive the ssh command. TagTracker on the Mac finds the vehicle through
+its default UDP auto-connect on port 14550; no link needs configuring. The rig has its own
+checkout and Python environment under `~/uavrt-rig` in the VM, deliberately separate from
+Michael's `~/repos`.
+
+Two things that will bite. The vehicle must arm at some point or QGroundControl saves no
+telemetry file at all, because "save logs even if vehicle was not armed" is off; take off from
+TagTracker or type `commander takeoff` in the PX4 shell. And macOS may re-ask whether TagTracker
+can accept incoming connections after a rebuild; if the vehicle appears before you click Allow,
+its startup requests are lost and TagTracker needs restarting.
+
+**ssh keys on this Mac must be ECDSA P-256.** Its managed ssh policy, from Apple's security
+compliance baseline in `/etc/ssh/crypto.conf`, accepts nothing else. An ed25519 key is loaded and
+then never offered, which looks exactly like a wrong key. Task 0-2 lost time to this.
+
 **Pulse logs now live one folder per vehicle connection.** Built by task 0-1 on branch
 `telemetry-pairing`. The folder is `Logs/<first pulse log's timestamp>/` and holds every pulse
 and rotation log from that connection, a `Pulse-<timestamp>.json` sidecar beside each pulse log,
@@ -185,6 +203,34 @@ recommends the first. Until Michael answers, no task should implement the surfac
 ---
 
 ## Open — waiting on the planning session
+
+### Task 0-2 — answered 2026-09-24 by the planning session
+
+The rig works, and the click-through it did closes the one thing task 0-1 left open. Pair
+Telemetry Logs reported "Telemetry copied into 0 log folder(s)" on a folder already paired at
+disconnect, which is the correct message for that state and the only part of task 0-1 no person
+had pressed. Task 0-1 is now fully exercised.
+
+Items 1, 3 and 5 are done in this commit. `CLAUDE.md` rule 5 and `docs/SOFTWARE_CONTEXT.md` now
+say the tunnel protocol is pinned through CPM in two CMake files rather than carried as a
+submodule, and that the parity check is comparing those two `GIT_TAG` lines. The simulator preset
+lists are corrected and separated into signal levels and scenarios. `tools/sim_rig.sh` is in the
+testing table.
+
+**A finding the report did not make, and it is the same disease as item 2.** Michael's own
+`MavlinkTagController2` at `~/Developer/uavrt/MavlinkTagController2` is **47 commits behind
+`origin/main`** and still carries the old submodule layout. `versions.yaml` records `verified:
+4fb5e85`, which is that stale commit. So there are three copies of the controller in play — his
+working clone, the VM's `~/repos` copy, and the rig's own checkout — and only the rig's is
+current. Both stale copies would misread today's TagTracker on the wire.
+
+Item 2 and that finding are for Michael to decide, since his uncommitted April simulator work is
+in one of them. Asked in chat.
+
+Item 4, telemetry lost on quit, is the one worth chasing and is now its own task. If an operator
+quits TagTracker at the end of a flight rather than disconnecting, and no telemetry file is
+written or recovered, then task 0-1 has nothing to pair and the feature silently does nothing in
+the one case that matters most.
 
 ### Task 0-2, ssh verified — 2026-09-23 — Done
 Michael installed the ECDSA key and `ssh parallels@192.168.0.136 true` returns with no
