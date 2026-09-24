@@ -77,7 +77,7 @@ rc=$?
 if [ "$1" = status ] || { [ "$1" = start ] && [ $rc -eq 0 ]; }; then
     echo "On the Mac:"
     if pgrep -x TagTracker >/dev/null; then
-        echo "  TagTracker is running; whether it is connected is PX4's ground station line above"
+        echo "  TagTracker is running (while PX4 is up, its ground station line above says whether TagTracker is connected)"
         exit $rc
     fi
     echo "  TagTracker is not running"

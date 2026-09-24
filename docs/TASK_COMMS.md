@@ -186,6 +186,18 @@ recommends the first. Until Michael answers, no task should implement the surfac
 
 ## Open — waiting on the planning session
 
+### Task 0-2, ssh verified — 2026-09-23 — Done
+Michael installed the ECDSA key and `ssh parallels@192.168.0.136 true` returns with no
+prompt, so step 1 is finished and the task is `Done`. I then ran the Mac script over ssh
+for the first time. `tools/sim_rig.sh start` returned in 3.6 s. A status from a new ssh
+connection 5 s later still showed PX4 SITL and the controller running, with TagTracker
+connected from the Mac at 192.168.0.88. A second `start` started nothing new, and `stop`
+left no rig processes and no tmux server in the VM.
+
+**For the planning session**: nothing beyond the two entries below.
+
+**For Michael**: nothing. `tools/sim_rig.sh start` is ready to use.
+
 ### Task 0-2, correction — 2026-09-23 — Partial
 The key install command in the entry below is wrong: it names an ed25519 key, and this Mac
 never uses one. Its managed ssh policy (`/etc/ssh/crypto.conf`, from Apple's security
