@@ -204,6 +204,93 @@ recommends the first. Until Michael answers, no task should implement the surfac
 
 ## Open — waiting on the planning session
 
+### Task 0-3 — 2026-09-23 — TagTracker commits d8e86b3e1, 75658c055 — Done
+The quit defect is not reproducible, so there is nothing to fix and no question for Don.
+Quitting TagTracker with the simulated vehicle armed saved the flight telemetry recording in
+all five tries, by four routes: Cmd-Q pressed by Michael, a macOS quit command sent by
+script, SIGTERM, and a quit after the simulated aircraft had already been shut down. Each
+time the `.tlog` appeared in `Telemetry/` within two seconds of confirming the quit. In the
+three tries that had pulse logs, it was also copied into the connection's log folder and
+named in every sidecar, including one quit with detection still running. I watched the
+temp and telemetry folders ten times a second and ran TagTracker with QGroundControl's
+debug logging for the telemetry recorder, the vehicle list and the link manager.
+
+Why a quit is safe. Every graceful way of closing the app ends in the same place. Cmd-Q,
+the window's close button, SIGTERM and Ctrl-C all become a close of the main window, which
+asks "There are still active connections to vehicles. Are you sure you want to exit?".
+Answering Yes runs QGroundControl's link shutdown, which disconnects every link and waits
+for the vehicle list to empty before anything is torn down. That is the same end of
+recording the Disconnect button causes. A crash or force quit skips it, leaves the
+temporary recording file behind, and the next start recovers it, as task 0-1 showed.
+
+What task 0-2 saw is real (nothing from that connection is in `Telemetry/`), and the
+likeliest reason is the macOS firewall prompt. Task 0-2's transcript and PX4's flight log
+show that TagTracker started before Michael clicked Allow, all of its startup requests to
+the vehicle timed out, and at 20:00:17 PX4 measured its round trip at 107 to 149 seconds.
+It was handling the vehicle's messages about two minutes late. Takeoff was about 19:57:45
+and the quit about 20:02:10. QGroundControl deletes a recording at the end if no
+heartbeat in it showed the vehicle armed, which is its "only save armed flights" rule, and
+with that backlog it may never have processed one sent after takeoff. That produces
+exactly what was seen: no file saved and nothing left to recover. I did not reproduce the
+backlog, so this is the explanation that fits the evidence, not a proven one. It needs a
+firewall prompt after a rebuild, which a field laptop does not get.
+
+The README now describes the per-connection folders, the sidecar and its fields, when the
+telemetry file is copied in (disconnect or quit), the startup and on-demand pairing, and
+adds Pair Telemetry Logs to the list of fly view actions. It is TagTracker's own
+`README.md` at the repository root, outside `custom/`, which the brief asked for.
+
+The WiFi log download does not confuse the pairing pass. The companion computer's folders
+are `Logs-Detectors-`, `Logs-RawCapture-` and `Logs-Rotation-` followed by a timestamp, and
+hold controller and detector logs, configs, IQ recordings and spectrogram CSVs. The pairing
+pass acts only on a folder with `Pulse-*.json` sidecars at its top level and does not look
+inside subfolders, so it passes over them. A new test builds a companion folder from the
+same flight, with times inside the telemetry file's span, and checks that the real folder
+is paired while every file in the companion folder keeps its name, size and modification
+time.
+
+The two naming schemes are easy to tell apart and harder to match up. TagTracker's folders
+are a bare local-time stamp such as `2026-09-23-21-08-31-664`; the controller's carry the
+`Logs-<type>-` prefix and a UTC stamp, one folder per detection run. So a run started at
+21:08:31 local appears as `2026-09-23-21-08-31-664/` and `Logs-Detectors-2026-09-24_04-08-31/`,
+seven hours and a date apart. That is good enough for this pull request, and the README now
+says which is which. I would not rename TagTracker's folders now: the folder name matching
+the first pulse log's name is recorded under "Decisions already made". If the mix bothers
+anyone in the field, the cheap fix is on the download side and stays inside `custom/`:
+put downloaded folders in a `Companion/` subfolder.
+
+Tests: the two log-folder suites pass, now 5 and 9 cases. The full suite is 374 of 387
+passing. The 13 failures are Bluetooth timeouts, serial, GPS and UDP socket tests, two
+user-interface view tests and two CMake coverage checks. Most trip on a macOS warning
+about a missing "Sans Serif" font in strict mode or on socket timing. The same 13 fail
+identically on task 0-1's last commit, so this task did not cause them. I did not check
+`master`, so I cannot say whether task 0-1's branch did.
+
+**For the planning session**
+1. Correct "all passed at the end of task 0-1" wherever it appears. On this Mac 13
+   upstream tests fail at task 0-1's commit too; task 0-1 probably ran only its own suites.
+2. Decide whether this deserves a brief: quitting TagTracker while detection is running
+   leaves the controller detecting. The next Start Detection after relaunch failed with
+   "Start Tag Send failed. Controller in incorrect state" until a Stop Detection was sent.
+   This branch does not touch that code, and I did not check `master`. An operator who
+   restarts TagTracker mid-flight would hit it.
+3. Add to the rig notes under "Decisions already made": the PX4 flight log's clock in the
+   VM runs slow against the Mac's, by about 16% over task 0-2's run, so PX4 message times
+   must be calibrated against a known event (I used a start detection) before being lined
+   up with TagTracker's.
+
+**For Michael**
+1. Push `telemetry-pairing` and open the pull request to Don. It now has four commits. Worth
+   a line in the description: quitting with a vehicle connected was tested four ways and
+   saves and pairs the telemetry file just as Disconnect does.
+2. My simulator flights left three log folders and five telemetry files in `TagTracker
+   Daily`. I moved them to `~/Documents/TagTracker task 0-3 simulator output/`; delete it
+   when you like. Task 0-2's folder `2026-09-23-20-05-07-875` and its `20-12-56.tlog` are
+   still in the real folders.
+3. The TagTracker you quit at the start of this task had been holding a recording of an
+   unarmed connection since 20:26; QGroundControl deleted it on quit, as it should. The rig
+   is stopped.
+
 ### Task 0-2 — answered 2026-09-24 by the planning session
 
 The rig works, and the click-through it did closes the one thing task 0-1 left open. Pair
