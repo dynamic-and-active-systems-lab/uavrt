@@ -105,6 +105,23 @@ that was validated against flights with known tag positions. Every porting task 
 the specific logs and the specific numbers it must reproduce, and a task that cannot run
 that comparison reports `Partial` rather than `Done`.
 
+**13 tests fail on this Mac for reasons unrelated to any of our work.** Bluetooth timeouts,
+serial, GPS and UDP socket tests, two interface view tests and two CMake coverage checks, mostly
+tripping on a missing "Sans Serif" font in strict mode or on socket timing. The full suite is 374
+of 387. They fail identically at the first commit of the `telemetry-pairing` branch, so nothing
+we wrote causes them. Nobody has checked `master`, so the honest claim is "unchanged by this
+branch", not "pre-existing". **Do not write "all tests pass" in a brief or a report.**
+
+**PX4's clock inside the Parallels VM runs slow against the Mac's**, by about 16% over a
+twenty-minute run. Lining PX4 flight log times up with TagTracker's requires calibrating against
+a known shared event, such as a start-detection command, rather than trusting either clock.
+
+**Quitting TagTracker while detection is running leaves the controller detecting.** The next Start
+Detection after relaunch fails with "Start Tag Send failed. Controller in incorrect state" until a
+Stop Detection is sent. Seen by task 0-3. Nothing we have written touches that code and nobody has
+checked whether `master` behaves the same. It is Don Gagne's to fix, it matters to an operator who
+restarts the app mid-flight, and it is not in scope for the telemetry pairing pull request.
+
 **There is a simulated aircraft; use it before reaching for hardware.** Built by task 0-2 and
 run from the Mac with `tools/sim_rig.sh start`, `status`, `stop` and `logs`. It brings up PX4
 SITL and `MavlinkTagController2 --simulator` in the Parallels VM at 192.168.0.136, each in its
@@ -203,6 +220,31 @@ recommends the first. Until Michael answers, no task should implement the surfac
 ---
 
 ## Open — waiting on the planning session
+
+### Task 0-3 — answered 2026-09-24 by the planning session
+
+The quit defect is not real, and the reasoning for what task 0-2 saw is good enough to act on.
+Five tries by four routes all saved the telemetry file, and the mechanism explains why: every
+graceful close ends in the same link shutdown the Disconnect button uses, waiting for the vehicle
+list to empty before anything is torn down. A crash skips it and the next start recovers the
+file, which task 0-1 had already shown.
+
+The explanation for task 0-2's single observation is labelled as fitting the evidence rather than
+proven, which is the right way to leave it. The firewall prompt delayed TagTracker's message
+handling by roughly two minutes, and QGroundControl deletes a recording whose heartbeats never
+showed the vehicle armed. It needs a firewall prompt after a rebuild, which a field machine does
+not get. Not worth chasing further.
+
+Items 1 and 3 are recorded above, along with item 2. Item 1 matters most: my own task 0-3 brief
+told the task that all tests passed at the end of task 0-1, and that was wrong. The rule is now
+written down.
+
+Item 2, the controller left detecting after a quit, is Don's code and out of scope for this pull
+request. Recorded above so it is not lost, and Michael can raise it separately.
+
+**Cleared to push.** Four commits, 16 files, 1247 insertions. The only file outside `custom/` is
+TagTracker's own `README.md`, which is the fork's documentation rather than upstream
+QGroundControl source, so Don's rule is intact. Verified independently.
 
 ### Task 0-3 — 2026-09-23 — TagTracker commits d8e86b3e1, 75658c055 — Done
 The quit defect is not reproducible, so there is nothing to fix and no question for Don.
