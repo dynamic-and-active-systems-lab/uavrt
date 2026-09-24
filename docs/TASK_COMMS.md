@@ -105,6 +105,16 @@ that was validated against flights with known tag positions. Every porting task 
 the specific logs and the specific numbers it must reproduce, and a task that cannot run
 that comparison reports `Partial` rather than `Done`.
 
+**Pulse logs now live one folder per vehicle connection.** Built by task 0-1 on branch
+`telemetry-pairing`. The folder is `Logs/<first pulse log's timestamp>/` and holds every pulse
+and rotation log from that connection, a `Pulse-<timestamp>.json` sidecar beside each pulse log,
+and a copy of the flight telemetry file added when the vehicle disconnects. The sidecar carries
+`sidecar_version`, `pulse_log`, `start_utc`, `stop_utc`, `vehicle_id`, `app_version` and
+`telemetry_file`. Rotation numbering restarts per folder and rotation logs are no longer deleted
+at app start. **Nothing will find pulse logs at the top of `Logs/` any more**, so the field
+review's file picker has to look inside these folders. The Python prototype is unaffected because
+it takes explicit paths.
+
 **Don Gagne approved the telemetry pairing plan on 2026-09-23**, including Claude writing it.
 Task 0-1 is cleared to run and to become its own pull request from branch `telemetry-pairing`.
 
@@ -176,7 +186,132 @@ recommends the first. Until Michael answers, no task should implement the surfac
 
 ## Open — waiting on the planning session
 
-Nothing yet. The first task has not run.
+### Task 0-1 — answered 2026-09-23 by the planning session (the task stays `Partial`)
+
+All six items answered. The status stays `Partial` on purpose: the one thing not covered is the
+one a person touches.
+
+1. **The stand-in run is enough for everything except the new button, and Michael should do the
+   click-through.** What the stand-in covered is stronger than the brief asked for: a real
+   telemetry recording and save, the real ordering at disconnect, a byte-identical copy, the
+   never-armed case, and a kill mid-detection where QGroundControl recovered the recording under
+   a name 15 seconds off, which matching by filename would have gotten wrong and matching by
+   content got right. That last one is worth keeping in the pull request description, because it
+   is the argument for reading the file rather than trusting its name. What it did not cover is
+   Pair Telemetry Logs, which is new code, new interface, and the only part of this a person
+   presses. `qmllint` parsing is not evidence it works. Two minutes of clicking closes it, and
+   "I ran it" carries weight with Don that a harness does not.
+2. **Done.** `docs/SOFTWARE_CONTEXT.md` section 9 and "Decisions already made" above both now
+   carry the folder layout and the sidecar fields, including the sentence that nothing will find
+   pulse logs at the top of `Logs/` any more.
+3. **Recorded in "Decisions already made" rather than in a brief, because the brief does not
+   exist yet.** The file picker belongs to the field review's interface work, which is phase 2
+   and unwritten. Tasks 1-1 to 1-3 are the analysis core and take explicit paths, so nothing
+   there is affected.
+4. **Accepted, with the measurement left open.** Doubling a copy QGroundControl already performs
+   on the same thread at the same moment is a fair trade, and 11 ms on 221 KB scales to well
+   under a second on a flight-sized file. Say so in the pull request rather than claiming it was
+   measured, and note it as the one thing untested at real scale.
+5. **Noted.** Deleting the end-of-recording check and watching three tests fail is the right kind
+   of evidence, and worth more than the count of cases.
+6. **Leave it.** Matching the surrounding hand-aligned style in a header is better than a
+   formatted block that reads as foreign, and no workflow in this fork checks it. Mention it in
+   the pull request so Don is not surprised.
+
+**One thing the report did not flag as a change of behavior, and the pull request should.**
+Rotation logs used to be deleted at every app start. They are not any more. The reasoning is
+sound, since numbering now restarts per folder and collisions cannot happen, but it changes what
+a user finds on disk after an app restart, and Don should read that in the description rather
+than discover it in the diff.
+
+### Task 0-1 — 2026-09-23 — commits f15c5a724, eb2f50447 — Partial
+Stopped at "How you know it worked": the simulator run. All the code is written and
+committed on TagTracker branch `telemetry-pairing`, which starts from `master` at
+743c4bf50. Nothing outside `custom/` changed, and nothing in `custom/src/FieldReview/`.
+The simulator run did not happen. This Mac has no PX4 SITL (the simulated autopilot
+that TagTracker would see as the vehicle), and this session is refused screen capture,
+so it cannot see or click TagTracker's buttons. In its place I ran the real app four
+times with a temporary edit, never committed, that drives the same steps from code
+against QGroundControl's built-in simulated vehicle (MockLink). What that did and did
+not cover is in item 1 below.
+
+What was built. A *log folder* is `Logs/<first pulse log's timestamp>/`. It is created
+when the first pulse log after a vehicle connects is opened, and it receives every pulse
+and rotation log until the last vehicle disconnects. That is the same moment
+QGroundControl ends its telemetry recording. Each `Pulse-*.csv` gets a `Pulse-*.json`
+beside it (the *sidecar*) with `sidecar_version`, `pulse_log`, `start_utc`, `stop_utc`,
+`vehicle_id` (the MAVLink system id), `app_version` and `telemetry_file`. The pulse CSV
+format is unchanged. On disconnect, and once at every app start, the telemetry file
+whose span contains the start of every run in a folder is copied in and named in the
+sidecars. A new fly view action, Pair Telemetry Logs, runs the same pass on demand.
+
+The three decisions the brief asked for:
+- The routine that deleted every `Rotation-*.csv` at app start is gone. It existed only
+  because rotation numbering restarted at 1 each app run and would overwrite older
+  files. Numbering now restarts per folder, so nothing can collide, and deleting a
+  previous flight's rotation logs was losing data. Loose `Rotation-*.csv` files already
+  sitting at the top of `Logs` are no longer deleted either.
+- Detection started with no vehicle: the folder is named from the pulse log as usual,
+  `vehicle_id` and `telemetry_file` stay null, and that run's own stop closes the
+  folder, so a later connection does not append to it. Today's UI refuses to start
+  detection without a vehicle, so this path cannot currently be reached.
+- Two telemetry files match one folder: if they are identical copies, the first by name
+  is used. If they differ, neither is named, the sidecars stay null, and the operator
+  sees a message. One app never records two overlapping flights, so differing matches
+  mean something is wrong, and naming either file could be naming the wrong one.
+
+A decision the brief did not ask for: a match requires every run's start, not its stop,
+to fall inside the telemetry file's span. A run left going when the vehicle disconnects
+keeps writing to its pulse log (unchanged behavior), and its stop time lands after the
+recording ended.
+
+**For the planning session**
+1. Decide whether the stand-in run is enough or Michael should do the click-through in
+   item 1 under "For Michael". The stand-in covered the real telemetry recording and
+   save, the ordering on disconnect, and the real file format. Two pulse logs and two
+   sidecars were in the folder before disconnect, with no telemetry file. After
+   disconnect the folder also held a byte-identical copy (checked with `cmp`), and each
+   sidecar named it with its own start and stop. A second run with the vehicle never
+   armed left no telemetry file and null sidecar fields. A third run was killed with
+   SIGKILL mid-detection; on restart QGroundControl recovered the stranded recording
+   under a name 15 seconds later than the run's start, which matching by filename would
+   have gotten wrong, and the startup pass paired it by content. The stand-in did not
+   cover the Start and Stop Detection buttons (they call the same unchanged routine),
+   the real controller, or the new Pair Telemetry Logs button. Its QML parses under
+   `qmllint`, and nothing else has checked it.
+2. Add the log folder layout and the sidecar fields to "Decisions already made" and to
+   `docs/SOFTWARE_CONTEXT.md`. Anything that looks for pulse logs at the top of `Logs`
+   will find none from now on.
+3. Add to the field review brief that its file picker must look inside the per-connection
+   folders. The field review branch lists no files yet, and the Python prototype takes
+   explicit paths, so nothing breaks today.
+4. Pairing runs on the UI thread at disconnect: reading the telemetry file and copying
+   it. For the 221 KB test recording that took 11 ms. I did not measure a real hour-long
+   flight, whose file will be tens of megabytes. QGroundControl already makes a copy of
+   the same size on the same thread at the same moment, so I expect the added stall to
+   be similar in length, but that is a guess.
+5. Tests added, registered with `add_qgc_test`, all passing: `PulseLogFolderTest` (5
+   cases, uses a MockLink vehicle and the real disconnect path) and `TelemetryPairingTest`
+   (8 cases, synthetic telemetry files). Temporarily removing the end-of-recording check
+   made three of them fail, including the ground test, so they catch the mistake that
+   matters most.
+6. The repo's clang-format check flags my additions to `CSVLogManager.h` and
+   `CustomPlugin.h`, because those headers use hand-aligned columns and I matched them.
+   No CI workflow in this fork runs that check. New files are fully clang-formatted
+   with the pinned version, 23.1.0.
+
+**For Michael**
+1. If the planning session wants it: connect to the simulator or the aircraft, start and
+   stop detection twice, look in `Logs/` for one new folder with two `Pulse-*.csv` and
+   two `Pulse-*.json`, disconnect, and check that a `.tlog` has appeared in the folder and
+   both `.json` files name it. Press Pair Telemetry Logs once and read the message.
+2. Push `telemetry-pairing` and open the pull request to Don against `master`. I have not
+   pushed. `custom/tunnel-protocol/` and `src/FirmwarePlugin/APM/ArduPilot-Parameter-Repository/`
+   are untracked and were not committed.
+3. The test runs wrote three folders and two telemetry files into
+   `~/Documents/TagTracker Daily/`. I moved them out afterward, and those folders now
+   match their earlier listings. Nothing of yours was touched.
+
 
 ---
 

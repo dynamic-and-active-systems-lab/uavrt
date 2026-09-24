@@ -279,6 +279,19 @@ The GCS writes two CSV families to its log directory:
 - **`Pulse-<timestamp>.csv`** — every confirmed pulse for the session, with rotation start/stop markers (command IDs 10/11) carrying GPS coordinates.
 - **`Rotation-<N>.csv`** — one file per rotation.
 
+**Since branch `telemetry-pairing` (task 0-1, 2026-09-23), these are no longer at the top of the
+log directory.** Each vehicle connection gets its own folder, `Logs/<first pulse log's
+timestamp>/`, holding every pulse and rotation log from that connection, a JSON sidecar beside
+each pulse log, and a copy of the flight telemetry file once the vehicle disconnects. Rotation
+numbering restarts per folder rather than per app run, and the routine that used to delete every
+`Rotation-*.csv` at app start is gone. **Anything that looks for pulse logs directly in `Logs/`
+will find none.**
+
+The sidecar is `Pulse-<timestamp>.json`, beside its pulse log, holding `sidecar_version`,
+`pulse_log`, `start_utc`, `stop_utc`, `vehicle_id`, `app_version` and `telemetry_file`. The last
+is filled in when the telemetry file is paired, and stays null when none was saved, which happens
+whenever the vehicle never armed. The pulse CSV format itself is unchanged.
+
 Columns (20, after a leading command-id field):
 `tag_id, frequency_hz, start_time_seconds, predict_next_start_seconds, snr, stft_score, group_seq_counter, group_ind, group_snr, noise_psd, detection_status, confirmed_status, latitude, longitude, altitude_rel, roll_deg, pitch_deg, yaw_deg, antenna_offset`
 
