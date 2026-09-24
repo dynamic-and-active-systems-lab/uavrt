@@ -186,6 +186,125 @@ recommends the first. Until Michael answers, no task should implement the surfac
 
 ## Open — waiting on the planning session
 
+### Task 0-2 — 2026-09-23 — commit 3d1ddf5 — Partial
+Stopped at step 1, passwordless ssh. I made a key without a passphrase
+(`~/.ssh/id_ed25519_uavrt_vm`) and added a host entry for the VM to `~/.ssh/config`, but
+the Claude Code permission system refused to let me install the key in the VM, so
+`ssh parallels@192.168.0.136 true` still fails. Everything else is built and verified.
+The rig ran for the whole click-through, driven through Parallels' own command channel
+instead of ssh, and the click-through that task 0-1 left open passed. The one piece never
+run is the ssh hop in the Mac script.
+
+The *rig* is the simulated aircraft: PX4 SITL (the PX4 autopilot compiled to run as a
+normal program, here with its built-in physics model, SIH, so no Gazebo and no display)
+plus `MavlinkTagController2 --simulator`, both in the Parallels VM, each in its own named
+tmux session so they outlive the ssh command. TagTracker runs on the Mac.
+
+Start command, once the key is installed:
+
+```
+cd ~/Developer/uavrt
+tools/sim_rig.sh start            # preset defaults to strong
+tools/sim_rig.sh status
+tools/sim_rig.sh stop
+tools/sim_rig.sh logs controller  # or px4
+```
+
+TagTracker link settings: none. TagTracker's default UDP auto-connect on port 14550 finds
+the vehicle. PX4's ground station link listens on UDP 18570 in the VM and broadcasts to
+192.168.0.255:14550 until a ground station answers, then sends to that ground station
+directly. The Mac received 1,459 packets in 4 seconds this way, and the VM's firewall
+already allowed 18570 in. The Mac's own firewall must allow TagTracker incoming
+connections; Michael clicked Allow during this run. On a network that blocks broadcast,
+a manual UDP link with server 192.168.0.136:18570 should work, but I did not test it.
+
+Click-through, on TagTracker branch `telemetry-pairing` (build of eb2f50447), with Michael
+pressing the buttons and me checking the files:
+- Two start/stop detection runs in one connection. The controller logged two starts and
+  two stops, each acknowledged. The C++ detector found the simulated tag at about 46 dB.
+- Before disconnecting: one new folder, `Logs/2026-09-23-20-05-07-875/`, holding two
+  `Pulse-*.csv` (96 and 84 pulse rows) and two `Pulse-*.json` with start and stop times,
+  no telemetry file, and `telemetry_file` null in both.
+- After Disconnect: the folder also held `2026-09-23 20-12-56.tlog`, 9.2 MB, byte-identical
+  to the copy in `Telemetry/` (checked with `cmp`), and both sidecars named it.
+- Pair Telemetry Logs, pressed once: "Telemetry copied into 0 log folder(s)." Michael
+  picked this from a list of options I offered, not by typing it out. It matches the
+  code's message for a folder already paired at disconnect. Nothing in the folder changed.
+
+What the VM needed (step 2):
+- The ssh server was listening, but the VM's firewall dropped port 22. I opened it to
+  192.168.0.0/24 only.
+- tmux was not installed. I installed it (tmux 3.4).
+- numpy and scipy crashed on import with "Illegal instruction": numpy's OpenBLAS picks
+  kernels for SME, the M4's matrix extension, which the VM advertises but which fault in
+  a Parallels guest. `OPENBLAS_CORETYPE=ARMV8` fixes it and the rig sets it.
+- `~/repos/MavlinkTagController2` in the VM was 23 commits behind and spoke an older wire
+  format than TagTracker (details in item 2 below). Rather than touch it, the rig has its
+  own checkout of `origin/main` (d3f7830) in `~/uavrt-rig`, built there with its own
+  Python environment. The controller builds every path it spawns from `$HOME/repos`, so
+  the rig runs it with `HOME=~/uavrt-rig`; its logs and its log pruning stay there too.
+- PX4 SITL was present and built. The rig gives it its own working directory,
+  `~/uavrt-rig/px4`, so it does not share parameters with the Gazebo runs.
+
+Which detector simulator mode uses: both, chosen by TagTracker. Start Detection works only
+in TagTracker's Survey Detection mode, which runs the C++ `uavrt_detection`; the rotation
+modes run the Python detector. The VM is ARM64 Linux, so the C++ detector is already built
+there (from `uavrt_detection` commit 766a385) and ran in this test. The x86_64 problem the
+brief anticipated does not arise on this Mac.
+
+I used Parallels' command channel (`prlctl exec`), which runs as root in the VM without a
+password, to install tmux and add the firewall rule. The key install through the same
+channel is what was refused.
+
+**For the planning session**
+1. Correct CLAUDE.md rule 5 and `docs/SOFTWARE_CONTEXT.md` sections 2, 7 and 8 on the
+   tunnel protocol, the shared header that defines the messages TagTracker and the
+   controller exchange. Neither repo has it as a git submodule any more. Both fetch it
+   through CPM at a pinned commit, currently `81ed30ac`, set by the `GIT_TAG` for
+   `TunnelProtocol` in TagTracker's `custom/CMakeLists.txt` and in the controller's
+   `CMakeLists.txt`. The parity check is now "those two lines match". I confirmed both
+   builds fetched a byte-identical `TunnelProtocol.h`.
+2. Ask Michael what should happen to `~/repos/MavlinkTagController2` in the VM. It sits
+   at commit 5419c4d with protocol commit 67f0b32, seven protocol commits older than
+   TagTracker's, which change the start-detection and pulse messages. It also carries his
+   uncommitted April simulator work: a JSON scenario option in the controller, a GUI for
+   the simulator and example scenario files. I left all of it untouched. Anyone who runs
+   the controller from that tree against today's TagTracker gets two programs that
+   misread each other.
+3. Update the simulator presets wherever the documents list them. The controller now
+   takes signal levels: `strong`, `moderate`, `marginal`, `below-marginal`, `silent`,
+   `competing`, `power-line`. The older names (`weak`, `noise-only`, `two-tags`,
+   `distant`, `dropout`, `gap`, `rate-switch`) are simulator scenarios used only when no
+   tags are uploaded, and TagTracker always uploads them before detection.
+4. Decide whether to chase this: quitting TagTracker (Cmd-Q) with the simulated vehicle
+   armed saved no telemetry file at all, and none was recovered at the next start. I saw
+   it once and did not find the cause. QGroundControl saves the recording when the last
+   vehicle disconnects, and quitting may not go through that path. If it holds, an
+   operator who quits instead of disconnecting at the end of a flight loses the telemetry
+   file, and task 0-1's pairing has nothing to pair.
+5. Add `tools/sim_rig.sh` to the "Testing without hardware" table in CLAUDE.md and to
+   `docs/SOFTWARE_CONTEXT.md`. I did not edit either.
+
+**For Michael**
+1. Install the key, entering the VM password once:
+   `ssh-copy-id -o BatchMode=no -i ~/.ssh/id_ed25519_uavrt_vm.pub parallels@192.168.0.136`.
+   Then `ssh parallels@192.168.0.136 true` should return silently, and
+   `tools/sim_rig.sh status` is the first run of the Mac script over ssh.
+2. The simulated vehicle has to arm at some point or TagTracker saves no telemetry file,
+   because "Save logs even if vehicle was not armed" is off. Take off from TagTracker,
+   or type `commander takeoff` in PX4's shell
+   (`ssh -t parallels@192.168.0.136 tmux attach -t rig-px4`, detach with Ctrl-b d).
+3. After a TagTracker rebuild, macOS may ask again whether TagTracker can accept incoming
+   connections. If the vehicle appears before you click Allow, its startup requests are
+   lost (this run showed a rally point transfer error) and TagTracker needs a restart.
+4. Outside the repository I changed: `~/.ssh/config` (backup at `~/.ssh/config.bak3`), a
+   new key pair `~/.ssh/id_ed25519_uavrt_vm`, and in the VM the firewall rule, tmux and
+   `~/uavrt-rig`. Your `~/.ssh/config` also has an older `parallels-vm` entry pointing at
+   192.168.0.102, which is no longer the VM's address. I left it.
+5. PX4 SITL logs everything from boot: 225 MB in the 21 minutes of this run, so roughly
+   650 MB an hour, and the VM has 7.4 GB free.
+   The rig keeps only the newest ten PX4 flight logs.
+
 ### Task 0-1 — answered 2026-09-23 by the planning session (the task stays `Partial`)
 
 All six items answered. The status stays `Partial` on purpose: the one thing not covered is the
