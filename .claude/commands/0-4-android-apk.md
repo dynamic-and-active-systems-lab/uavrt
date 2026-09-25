@@ -71,7 +71,33 @@ An APK that builds is not an APK that installs. Check the artifact itself, with 
 
 Report the APK's size. Michael is going to copy it to a controller, and the number matters.
 
-## Installing, only if a device is there
+## Then run it on an emulator
+
+Android Studio is installed and this Mac is Apple Silicon, so an arm64 system image runs natively
+and will accept this APK without translation. Use an API 28 or newer arm64 image; API 28 exactly
+is the more useful choice, because it is the floor the APK claims to support and the place a
+packaging mistake shows up.
+
+Drive it from the command line rather than the Android Studio interface: `avdmanager` to create
+the device if none exists, `emulator` to start it headless or not, `adb install -r`, `adb logcat`
+to watch it start, and `adb exec-out screencap -p` to pull a screenshot you can look at.
+
+What to establish, in order:
+
+- It installs. A signing or minimum-SDK mistake fails here and nowhere earlier.
+- It launches and reaches its main screen rather than dying on a missing library. Read `logcat`
+  for the first fatal error if it does not.
+- **It can create and write the per-connection log folders.** This is the part worth the effort.
+  The log reorganization on branch `telemetry-pairing` has only ever run on a Mac filesystem, and
+  Android's scoped storage rules are the most likely place for it to fail on a real controller.
+  Find where TagTracker's log save path resolves to on Android, make it write something there,
+  and confirm a folder with a pulse log and a sidecar appears. Use `adb shell` to look.
+- Report the screenshot and what `logcat` said.
+
+If the emulator cannot be made to work, say so and why, and do not spend the whole task on it.
+The APK itself is the deliverable; this is verification.
+
+## Installing on the real controller, only if it is there
 
 If `adb devices` shows the controller, install with `adb install -r` and confirm the app launches.
 If it does not, say so plainly and give Michael the APK path and the exact command. Do not ask him
@@ -101,5 +127,6 @@ than substituting a different version.
 ## When you finish
 
 Append an entry to the top of "Open" in `docs/TASK_COMMS.md` with your commit hashes, the APK
-path, its verified minimum SDK and ABI, its size, and whether it was installed. Then report to
+path, its verified minimum SDK and ABI, its size, what the emulator run showed, and whether it
+was installed on the real controller. Then report to
 Michael in chat ending with what he needs to do.
