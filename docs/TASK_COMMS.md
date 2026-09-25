@@ -221,6 +221,85 @@ recommends the first. Until Michael answers, no task should implement the surfac
 
 ## Open — waiting on the planning session
 
+### Task 0-4 — 2026-09-24 — hub commit 482802d — Done
+A signed TagTracker APK for the SIYI UniRC 7 Pro is built and verified, at
+`TagTracker/build/Android/android-build/TagTracker.apk`, 88 MB (92,081,770 bytes). It was built
+from branch `telemetry-pairing` at 75658c055, so it contains the unmerged log folder work. It ran
+on Android 9 and Android 13 emulators, and on both it made a per-connection log folder with a pulse
+log, a sidecar and a copy of the flight telemetry file. The real controller was not connected, so
+nothing was installed on it.
+
+Checked on the APK itself with `aapt2` and `apksigner` from build tools 36.0.0: package
+`com.thegagnes.tagtracker`, minimum SDK 28, target SDK 36, native libraries for `arm64-v8a` only,
+and `apksigner verify` passes (APK Signature Scheme v3, one signer, certificate "CN=Don Gagne").
+The keystore accepted `android` as its password, so it is signed with the committed debug key,
+the same one Don's CI uses.
+
+Versions have not moved: `.github/build-config.json` still pins Java 21, platform android-36,
+build tools 36.0.0, NDK 27.2.12479018 and minimum SDK 28, and target SDK follows the platform, so
+36. I installed NDK 27.2.12479018 (only 28.2 was present). Two pieces differ from CI in ways that
+do not reach the APK: Java is Android Studio's bundled 21.0.10 rather than Temurin 21, and the
+SDK command-line tools are version 22.0 rather than CI's pinned build 14742923.
+
+`tools/android_apk.sh build` rebuilds it in one line: it reads the versions from the same config
+file CI reads, stops if an installed piece does not match, builds, and runs the checks above.
+`verify`, `install` and `path` do the parts separately. The keystore password is kept in the
+Mac's login keychain as `uavrt-tagtracker-keystore`, and never in a file.
+
+What the emulators showed. The *rig* is the simulated aircraft from task 0-2 (PX4 SITL and the
+tag controller simulator in the Parallels VM). An emulator cannot hear the rig's broadcast, so
+`tools/emulator_mav_relay.py` passes MAVLink between them. On each emulator I installed the APK,
+connected to the rig, started survey detection, commanded a takeoff so the recording would be
+kept, stopped detection, landed and pressed Disconnect.
+
+- Android 9 (API 28, arm64, the APK's floor): installed and launched with no fatal error in
+  `logcat`. The save folder is `/storage/emulated/0/TagTracker Daily/`, reached after the usual
+  storage prompt. The run made `Logs/2026-09-24-21-57-04-616/` holding the pulse log (76 pulse
+  rows from the simulated tag, signal-to-noise 36 to 48 dB) and its sidecar with `vehicle_id` 1 and start and
+  stop times. At Disconnect the telemetry file was copied in, byte-identical to the one in
+  `Telemetry/` (checked with `cmp`), and the sidecar named it.
+- Android 13 (API 33, arm64, the controller's version): the first launch opens Android's "All
+  files access" screen. I backed out without granting it, which is the harder case. The save
+  folder is then `/storage/emulated/0/Android/data/com.thegagnes.tagtracker/files/TagTracker
+  Daily/`, the app's own storage, which needs no permission. The same run gave the same result:
+  folder, 48 pulse rows (45 to 48 dB), sidecar with start, stop and vehicle id, and a byte-identical telemetry
+  copy named in the sidecar.
+
+So scoped storage does not break the log reorganization on Android 13. The files, screenshots
+of detection running, and the storage prompt are in `~/Documents/TagTracker task 0-4 emulator
+output/`.
+
+**For the planning session**
+1. Add to "Decisions already made" where TagTracker saves on the controller: on Android 11 and
+   newer, with no removable SD card, the whole `TagTracker Daily` folder lives in the app's own
+   storage, `Android/data/com.thegagnes.tagtracker/files/`. Two consequences for Michael, neither
+   tested here. Uninstalling the app deletes every log, because Android removes that folder with
+   the app; `adb install -r` and upgrades keep it. And Android 13's own Files app usually cannot
+   browse `Android/data`, so logs come off by USB file transfer to a computer or `adb pull`.
+2. One case is untested and matters if the controller has a microSD card: if "All files access"
+   is granted and a removable card is present, QGroundControl saves to the card's root instead.
+   The emulator had no removable card. Worth checking on the real controller.
+3. Add `tools/android_apk.sh` and `tools/emulator_mav_relay.py` to the "Testing without
+   hardware" table in `CLAUDE.md` and wherever `docs/SOFTWARE_CONTEXT.md` lists build tools. I
+   did not edit either.
+4. Every TagTracker build from this tag gets Android version code 664300999, because the build
+   clamps the development counter (3517 commits past v4.3.0) at 999 and warns "Cut a release tag
+   to reset the counter". Reinstalling with `adb install -r` works; nothing will ever see a newer
+   build as an upgrade by number. Don's concern, not ours, but worth one line to him.
+5. Another Claude session, working on TriTrack, installed and launched `edu.nau.tritrack` on my
+   Android 13 emulator mid-run, presumably because it was the only device `adb` could see. I left
+   its app alone and the emulator (`uavrt_api33`) running. If two sessions will use emulators at
+   once, the briefs should name the device with `adb -s`.
+
+**For Michael**
+1. To install on the controller once developer options and USB debugging are on and it is
+   plugged in: `~/Developer/uavrt/tools/android_apk.sh install`. Without a cable, copy
+   `TagTracker/build/Android/android-build/TagTracker.apk` onto it and open it with the
+   controller's file manager.
+2. At first launch the app opens "All files access". Leaving it off is fine unless you want
+   logs on a microSD card (item 2 above).
+3. To rebuild after pulling new TagTracker code: `~/Developer/uavrt/tools/android_apk.sh build`.
+
 ### Task 0-3 — answered 2026-09-24 by the planning session
 
 The quit defect is not real, and the reasoning for what task 0-2 saw is good enough to act on.
