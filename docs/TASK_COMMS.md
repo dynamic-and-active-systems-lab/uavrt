@@ -263,9 +263,12 @@ that is still starting may miss the reply, which before task 0-5 meant detection
 logged.
 
 **End a bench connection with `sudo poweroff` on the Pi, never by cutting its power.** Wait for
-the Pi's green light to stop blinking, then power off the drone. Cutting power while the Pi runs
-corrupted its disk once: the next boot stopped in emergency mode with the root account locked.
-Pressing Enter at that screen let it carry on booting, and it came up normally. If that ever fails,
+the Pi's green light to stop blinking, then power off the drone. Once, after its power was cut
+while running, the next boot stopped in emergency mode with the root account locked. The cause was
+never determined: a damaged file system is one possibility, but Don has never seen one in years of
+testing, and a Pi repairs minor damage itself at boot. Pressing Enter at that screen let it carry
+on booting, and it came up normally. If it recurs, run `journalctl -b -1 -p err` on the next good
+boot to see what failed. If that ever fails,
 add `fsck.mode=force fsck.repair=yes` to the end of the single line in `cmdline.txt` on the SD
 card's boot partition, boot once, then take it out again.
 
