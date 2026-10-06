@@ -17,17 +17,17 @@
 # Simulator scenarios, used only if no tags are uploaded:
 #   weak, noise-only, two-tags, distant, dropout, gap, rate-switch
 #
-# The VM is reached with `ssh $UAVRT_VM` (default parallels@192.168.0.136), which
+# The VM is reached with `ssh $UAVRT_VM` (default parallels@10.211.55.3), which
 # must work without a password prompt; see the "uavrt-vm" entry in ~/.ssh/config.
 # The key is ECDSA P-256 because this Mac's managed ssh policy
 # (/etc/ssh/crypto.conf) accepts no other key type; an ed25519 key is silently
 # never offered.
-# To watch a process live: ssh -t parallels@192.168.0.136 tmux attach -t rig-controller
+# To watch a process live: ssh -t parallels@10.211.55.3 tmux attach -t rig-controller
 # (or rig-px4 for the PX4 shell); detach with Ctrl-b d.
 #
 # One-time VM setup, done 2026-09-23 (start says which piece is missing):
 #   sudo apt install tmux
-#   sudo ufw allow from 192.168.0.0/24 to any port 22 proto tcp
+#   sudo ufw allow from 10.211.55.0/24 to any port 22 proto tcp
 #   git clone https://github.com/DonLakeFlyer/MavlinkTagController2 ~/uavrt-rig/repos/MavlinkTagController2
 #   cd ~/uavrt-rig/repos/MavlinkTagController2 && make controller decimator && ./setup_venv.sh
 #   ln -s ~/repos/uavrt_detection ~/uavrt-rig/repos/uavrt_detection
@@ -38,7 +38,7 @@
 
 set -uo pipefail
 
-VM="${UAVRT_VM:-parallels@192.168.0.136}"
+VM="${UAVRT_VM:-parallels@10.211.55.3}"
 HERE="$(cd "$(dirname "$0")" && pwd)"
 VM_SCRIPT="$HERE/sim_rig_vm.sh"
 REMOTE_SCRIPT='uavrt-rig/bin/sim_rig_vm.sh'   # relative to the VM user's home
