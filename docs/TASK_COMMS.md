@@ -235,6 +235,66 @@ submodules. None of that is true now. Android minimum SDK is 28, which is Androi
 whether the Herelink can run a current build is an open question. Correct those documents
 when you touch them.
 
+**Bench testing on the real controller and drone, learned 2026-09-30 to 2026-10-01.** The
+paragraphs below come from the first test of the `telemetry-pairing` build on the SIYI UniRC 7 Pro
+handheld with the drone's Raspberry Pi 5 on the bench, unarmed.
+
+**Installing an APK on the SIYI: use a thumb drive.** The SIYI's USB-C port is in video mode, so a
+Mac sees no Android device over USB and `adb` finds nothing. Wireless debugging works only with the
+SIYI and the Mac on the same Wi-Fi, and joining any Wi-Fi other than the SIYI's own drops its link
+to the drone (192.168.144.x). What works: copy `TagTracker.apk` from
+`TagTracker/build/Android/android-build/` to a thumb drive, plug it into the SIYI, open Files, tap
+the APK and choose Update. If Android says "App not installed" or warns of a conflict, stop: never
+uninstall, because that deletes the logs on the controller.
+
+**Where TagTracker saves on Android depends on what is plugged in when it starts.** If a removable
+drive (a USB thumb drive counts) is present at app start, everything goes to that drive.
+Otherwise it goes to the app's own storage, `Android/data/com.thegagnes.tagtracker/files/TagTracker/`,
+which the SIYI's Files app can open. If the drive is plugged in for one start and not the next,
+a flight's files end up in two places and its folder is never paired, because pairing only looks in
+the current location. In the field: keep a drive out of the SIYI, or turn on QGroundControl's
+"don't save to SD card" setting. This is QGroundControl's behaviour, not ours.
+
+**A bench test needs three settings.** Detection Flight Mode must be Survey Detection, or the
+Start and Stop Detection actions do not appear and no pulse log is written (the default is Auto
+Rotation). "Save logs even if vehicle was not armed" must be on to get a telemetry file without
+arming. And wait about a minute after the controller bar turns green before Start Detection: a Pi
+that is still starting may miss the reply, which before task 0-5 meant detection ran with nothing
+logged.
+
+**End a bench connection with `sudo poweroff` on the Pi, never by cutting its power.** Wait for
+the Pi's green light to stop blinking, then power off the drone. Cutting power while the Pi runs
+corrupted its disk once: the next boot stopped in emergency mode with the root account locked.
+Pressing Enter at that screen let it carry on booting, and it came up normally. If that ever fails,
+add `fsck.mode=force fsck.repair=yes` to the end of the single line in `cmdline.txt` on the SD
+card's boot partition, boot once, then take it out again.
+
+**The Pi's clock cannot be trusted on the bench.** The Pi has no battery-backed clock, and without
+internet it starts each boot from the last time it saved. Against the SIYI it was 2.5 minutes
+ahead on one boot and 24 minutes behind on the next, after a hard power-off. The pulse logs'
+`start_time_seconds` come from the Pi's clock. Telemetry pairing is unaffected, because it uses
+only the SIYI's clock. The field review mostly is too, because each pulse row carries its own
+position, but anything that lines pulse times up with the telemetry file must not trust the Pi's
+clock. Don knows. A fix without a battery would be for the controller to set the Pi's clock from
+the flight controller's GPS time.
+
+**The SIYI's clock is set to UTC+8**, so folder and telemetry file names read about 15 hours ahead
+of local Arizona time. The sidecars' times are UTC and correct.
+
+**A Raspberry Pi 5 needs one extra line for the serial link to the flight controller.**
+`setup/full_setup.sh` in MavlinkTagController2 leaves `/dev/serial0` pointing at the Pi 5's debug
+connector (`ttyAMA10`) rather than the GPIO pins (`ttyAMA0`), so the controller never hears the
+flight controller and TagTracker's controller bar stays red. Adding `dtparam=uart0_console` to
+`/boot/firmware/config.txt` fixes it; Michael's Pi has it, with a backup at
+`config.txt.bak-serial0`. Don builds on a compute module, which does not hit this. Michael emailed
+him on 2026-09-30.
+
+**Pulse logs from before tunnel protocol version 7 contain heartbeat rows.** Older controllers
+sent their keep-alive as a pulse message with `frequency_hz` of 0, and TagTracker logged those rows
+like any other. `readpulsetable.py` in the Python prototype does not filter them out, so a field
+review of an older flight would include them. The Python is the planning session's to fix. Logs
+written since version 7 have none; the bench test confirmed it.
+
 **Open question, not yet decided: how the triangulation gets into the build.** The
 interpolated surface needs a Delaunay triangulation, which is the standard way of
 joining scattered points into triangles so a value can be interpolated inside each one.
