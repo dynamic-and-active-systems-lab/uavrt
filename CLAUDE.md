@@ -56,7 +56,8 @@ not direct pushes.
    the shared header defining every message TagTracker and the controller exchange. It is **no
    longer a git submodule in either repo** — both fetch it through CPM at a pinned commit. Compare
    the `GIT_TAG` under `NAME TunnelProtocol` in `TagTracker/custom/CMakeLists.txt` against the one
-   in `MavlinkTagController2/CMakeLists.txt`. Both are currently `81ed30ac`. If those two lines
+   in `MavlinkTagController2/CMakeLists.txt`. Both are currently `8f39f958`, tunnel protocol version 7, since 2026-09-30. The older `81ed30ac` is
+   version 5 and is wrong for current code. If those two lines
    differ, the GCS and the aircraft silently disagree about the wire format. The
    `custom/tunnel-protocol/` directory still present in a TagTracker working tree is an untracked
    leftover clone, not the copy the build uses.

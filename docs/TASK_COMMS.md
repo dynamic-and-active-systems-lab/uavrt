@@ -121,10 +121,22 @@ Detection after relaunch fails with "Start Tag Send failed. Controller in incorr
 Stop Detection is sent. Seen by task 0-3. Nothing we have written touches that code and nobody has
 checked whether `master` behaves the same. It is Don Gagne's to fix, it matters to an operator who
 restarts the app mid-flight, and it is not in scope for the telemetry pairing pull request.
+Since task 0-5 the pulses from that still-running detection are logged (see the next entry), but
+the next Start Detection still fails until a Stop Detection is sent.
+
+**TagTracker starts a pulse log by itself when the controller is detecting and none is open.**
+Built by task 0-5 for pull request #133, in response to Don's review. On every controller
+heartbeat, in Survey Detection mode, with a vehicle connected, if the controller says it is
+detecting and no pulse log is open, TagTracker opens one in the current connection's folder and
+tells the operator. It covers three cases that used to lose every pulse without a word: a
+disconnect and reconnect mid-detection, a lost reply to Start Detection, and TagTracker restarted
+while the controller kept detecting. It stands aside while a Start Detection is in progress and
+after a Stop Detection until the controller leaves detecting. Python (rotation) modes are not
+affected.
 
 **There is a simulated aircraft; use it before reaching for hardware.** Built by task 0-2 and
 run from the Mac with `tools/sim_rig.sh start`, `status`, `stop` and `logs`. It brings up PX4
-SITL and `MavlinkTagController2 --simulator` in the Parallels VM at 192.168.0.136, each in its
+SITL and `MavlinkTagController2 --simulator` in the Parallels VM at 10.211.55.3, each in its
 own tmux session so they outlive the ssh command. TagTracker on the Mac finds the vehicle through
 its default UDP auto-connect on port 14550; no link needs configuring. The rig has its own
 checkout and Python environment under `~/uavrt-rig` in the VM, deliberately separate from
@@ -135,6 +147,20 @@ telemetry file at all, because "save logs even if vehicle was not armed" is off;
 TagTracker or type `commander takeoff` in the PX4 shell. And macOS may re-ask whether TagTracker
 can accept incoming connections after a rebuild; if the vehicle appears before you click Allow,
 its startup requests are lost and TagTracker needs restarting.
+
+Since 2026-10-05 the VM is on Parallels' shared network at 10.211.55.3 rather than bridged onto
+the home network at 192.168.0.136. That address stays the same whichever network the Mac is on.
+The VM's firewall allows ssh from `10.211.55.0/24`, and the Mac's `~/.ssh/config` entry
+`uavrt-vm` points there. The rig's controller checkout in the VM is at `1f80697`, built against
+tunnel protocol version 7.
+
+Stop the rig when you are done with it. PX4 writes about 700 MB of flight log an hour even when
+nothing is happening; overnight it filled the VM's disk to 96%. The rig keeps only the newest ten
+PX4 logs each time it starts, but ten long runs can still be several gigabytes. To clear them:
+`ssh uavrt-vm 'find ~/uavrt-rig/px4/log -name "*.ulg" -delete'`.
+
+The controller once crashed as the rig started, with `std::system_error: Invalid argument` before
+it opened its socket. Starting the rig again worked. Not investigated; if it recurs, note it here.
 
 **ssh keys on this Mac must be ECDSA P-256.** Its managed ssh policy, from Apple's security
 compliance baseline in `/etc/ssh/crypto.conf`, accepts nothing else. An ed25519 key is loaded and
@@ -220,6 +246,179 @@ recommends the first. Until Michael answers, no task should implement the surfac
 ---
 
 ## Open — waiting on the planning session
+
+### Task 0-5 — answered 2026-10-06 by the planning session
+
+Read all six commits, and item 1's logic in detail, including that a failed Start Detection clears
+its "start in progress" flag so the lost-reply case is covered too. Michael force-pushed to
+`lab/telemetry-pairing` and posted both replies on pull request #133.
+
+Your notes for the planning session:
+1. The protocol version in the hub `CLAUDE.md` rule 5 now says `8f39f958`, version 7.
+2. The VM network: Michael chose to keep the shared network. The VM's firewall now allows ssh from
+   `10.211.55.0/24`, `tools/sim_rig.sh` uses 10.211.55.3 (hub commit f9d91d5), and `~/.ssh/config`
+   was updated. `tools/sim_rig.sh status` works again. No `prlctl exec` fallback was added.
+3. PX4's flight logs were deleted, 5.5 GB; the VM has 13 GB free. Recorded in the rig notes above.
+4. The controller crash at rig start is recorded in the rig notes above.
+5. Open: whether `README.md` should say a pulse log can now start at a reconnect. Not decided.
+6. Open: disarming no longer stops detection after a reconnect, on master too. Michael will decide
+   whether to raise it with Don once this review round settles.
+7. Recorded in "Decisions already made", with a sentence added to the note about quitting
+   mid-detection.
+
+### Task 0-5 — 2026-10-05 — TagTracker commits 9d62ebd44, cb4e77d42, e6ccd73a7, 7baf11764, 3a1d0ae29, 3e70b266f — Done
+The six review items Michael chose for pull request #133 are fixed, one commit each, on top of
+`telemetry-pairing` rebased onto Don's master `093c56c7e`. The rebase had no conflicts. Nothing
+outside `custom/` changed: 9 files, 232 insertions, 20 deletions. Not pushed.
+
+| Item | Commit | Result |
+|---|---|---|
+| 1. Pulses stop being logged after disconnect and reconnect | 9d62ebd44 | Fixed, new test, shown on the simulated aircraft |
+| 2. Startup pairing depends on timing | cb4e77d42 | Moved into `linkConfigurationsLoaded`; seen running there on the simulated aircraft |
+| 3. QSaveFile without direct-write fallback | e6ccd73a7 | Fixed; no test (needs storage that cannot rename) |
+| 5. Identical copies paired under the later name | 7baf11764 | Fixed; test renamed to `_duplicateCopiesPairWithShortestName` |
+| 7. Empty telemetry or log path scans the working directory | 3a1d0ae29 | Fixed, new test |
+| 8. Telemetry paired with runs that had no vehicle | 3e70b266f | Fixed, new test |
+
+Items 4 and 6 are not fixed, as Michael decided; replies below. For item 6 I checked Don's new
+master myself: no workflow under `.github/` runs clang-format or pre-commit.
+
+**Item 1, how it works.** On every controller heartbeat, not only on a status change, TagTracker
+checks: Survey Detection mode, controller Detecting, a vehicle connected, no full pulse log open.
+If all hold, it opens a pulse log in the current connection's folder and shows "Detection is
+running but pulse logging had stopped. A new pulse log has started." The same check covers
+Michael's emailed bug (a lost reply to Start Detection) and a third case: TagTracker restarted
+while the controller is still detecting now logs from the first heartbeat.
+
+The race the brief warned about. I made the heartbeat check stand back rather than make the start
+path accept an already-open log. Accepting the open log would avoid the error but still show the
+operator "logging had stopped" during an ordinary start. Stop Detection has the mirror-image race:
+it closes the log, then waits for the controller's reply, and a heartbeat still saying Detecting
+would reopen it. So the check stands back while the Start Detection state machine runs, and after
+a stop until the controller reports it has left Detecting. If the log cannot be opened, it does
+not retry every heartbeat (one error message, not one every 5 seconds).
+
+**Item 1 on the simulated aircraft**, with Michael clicking. There is no Disconnect button while
+the link is healthy: QGroundControl shows it only beside "Comms Lost", and the auto-connected UDP
+link is hidden from the Comm Links page. So I blocked PX4's packets to the Mac with a temporary
+`iptables` rule in the VM, Michael pressed Disconnect, and the rule was lifted 3 seconds after
+TagTracker logged the disconnect, so it reconnected through auto-connect.
+
+- Unfixed build: 65 confirmed pulses before the disconnect, 65 rows in the pulse log. After the
+  reconnect 28 confirmed pulses arrived, 0 were written, and no second folder appeared. The
+  controller's simulator, decimator and detector were all still running.
+- Fixed build, launched while the controller was still detecting: it opened a log 3 seconds after
+  start (folder `2026-10-05-07-20-48-041`). After the same disconnect it opened a second folder,
+  `2026-10-05-07-21-51-588`, 4 seconds after the vehicle came back, with its own pulse log
+  (45 rows) and a sidecar naming vehicle 1. The first folder's sidecar got its stop time.
+- A normal Stop then Start in the fixed build: nothing reopened the log in the 25 seconds after
+  Stop, and Start opened exactly one log through its own state machine, with no "already open"
+  error. Both replies came back within 0.2 s, so no heartbeat fell inside the windows the guards
+  protect. The simulator shows the normal path unchanged; the guards themselves are verified by
+  reading the code only.
+
+The new automated test, `PulseLogFolderTest::_detectingHeartbeatResumesPulseLog`, feeds controller
+heartbeats to the plugin with the mock vehicle: none in a Python mode, one log on a Detecting
+heartbeat, no second log on the next, then disconnect, reconnect, and a new folder with its own
+pulse log and sidecar. The start and stop guards have no automated test. Exercising them needs a
+Stop Detection state machine retrying against a mock link that never answers, and the test
+framework's strict warning check would make that brittle.
+
+**Tests.** Ran the five custom suites (TelemetryPairing, PulseLogFolder, TunnelProtocolText,
+OperationProgress, TagTrackerPulseDisplay): all five passed after the rebase and before any
+change, and all five pass at the tip. Every one of the six commits was built and the five suites
+run at it; see "per-commit check" below. Each new test fails without its fix, checked by reverting
+the fix locally: `_detectingHeartbeatResumesPulseLog` with the heartbeat check removed,
+`_duplicateCopiesPairWithShortestName`, `_emptyPathsDoNotScanWorkingDirectory` (each half
+separately) and `_noVehicleRunIsNotPaired` with the old pairing code. The full suite was not run.
+The build has no compiler warnings; the linker prints one upstream note about duplicate
+libraries, unrelated to this branch.
+
+Per-commit check: each of the six commits, checked out in order, built `macOS-debug` cleanly and
+passed all five custom suites, so the history can be bisected.
+
+**For the planning session**
+1. Correct rule 5 of the hub `CLAUDE.md`. Both pins are now `8f39f958` (tunnel protocol version 7),
+   not `81ed30ac`: TagTracker master in `custom/CMakeLists.txt` and MavlinkTagController2 `main`
+   since its commit 6701d10. The rig in the VM was still built against `81ed30ac`, so I moved its
+   checkout from d3f7830 to `1f80697` (current `main`, detached head as before) and rebuilt it.
+2. The VM's network has changed, and `tools/sim_rig.sh` cannot reach it. It is now on Parallels'
+   shared network at 10.211.55.3 (the Mac was on another network, 192.168.205.x), and its firewall
+   admits ssh only from 192.168.0.0/24. I drove it with `prlctl exec` as the `parallels` user
+   instead and changed no firewall rule. Add to the rig notes, and give Michael the choice: allow
+   ssh from 10.211.55.0/24 in the VM, or put the VM back on bridged networking. A `prlctl exec`
+   fallback in `sim_rig.sh` would make the rig independent of the network.
+3. The VM disk is 96% full, 2.9 GB free. PX4's flight logs grew from 0.5 GB to 5.4 GB overnight
+   while the rig sat idle. Add "stop the rig when done" to the rig notes, or have the rig trim
+   PX4's logs at start.
+4. The controller crashed once at rig start, `std::system_error: Invalid argument`, inside its
+   simulator telemetry publisher before the socket bind. The second start worked, and running it by
+   hand worked. Not investigated: gdb in the VM cannot produce a backtrace. Note it in the rig notes
+   in case it recurs.
+5. The branch's README says a full pulse log runs from Start Detection to Stop Detection. A resumed
+   log now starts at a reconnect. The README is outside `custom/`, so I left it. Decide whether one
+   sentence goes in with this round.
+6. A judgement call for Michael and Don, not fixed: after a reconnect, disarming no longer stops
+   detection, because Start Detection connected the disarm handler to the old vehicle object, which
+   the disconnect destroyed. This is true on master too. The resume path could connect it to the new
+   vehicle in one line. Worth asking Don whether he wants it in this pull request.
+7. Add to "Decisions already made": TagTracker now resumes pulse logging whenever the controller is
+   detecting in Survey Detection and no log is open. That changes what task 0-3's "controller left
+   detecting after a quit" means for an operator: the pulses are now logged, but the next Start
+   Detection still fails until a Stop is sent.
+
+**For Michael**
+1. Read the commits, then push with
+   `git push --force-with-lease=telemetry-pairing:71bb49512 lab telemetry-pairing`.
+2. Paste the two replies below into pull request #133.
+3. Decide on the VM network (item 2 above). Until then `tools/sim_rig.sh` fails with "cannot ssh".
+
+**Reply to Don (one comment):**
+
+> Thanks, Don. Rebased onto 093c56c7e (no conflicts) and fixed on top, one commit per item.
+>
+> **1. Survey detection stops logging pulses after a vehicle disconnect and reconnect:** Fixed in
+> 9d62ebd44. On every controller heartbeat, if the mode is Survey Detection, the controller says
+> Detecting, a vehicle is connected and no pulse log is open, TagTracker opens one in the current
+> connection's folder and shows "Detection is running but pulse logging had stopped. A new pulse
+> log has started." It checks every heartbeat because the status stays Detecting across the
+> reconnect. The same check covers a lost reply to Start Detection, and TagTracker restarted while
+> the controller is detecting. It stands back while the Start Detection state machine runs, so an
+> early Detecting heartbeat can't open the log ahead of `_startPulseLogging`. It also stands back
+> after Stop Detection until the controller leaves Detecting, so a heartbeat sent before the stop
+> lands can't reopen the log. New test: `PulseLogFolderTest::_detectingHeartbeatResumesPulseLog`.
+> Also reproduced on PX4 SITL with the controller simulator: before the fix, 28 pulses after the
+> reconnect and none written; after it, a second folder with its own pulse log and sidecar.
+>
+> **2. The startup pairing order depends on timing:** Fixed in cb4e77d42. The pass now runs at the
+> end of `linkConfigurationsLoaded`, with the same skips for unit tests and disabled persistence.
+>
+> **3. `QSaveFile` is used without `setDirectWriteFallback(true)`:** Fixed in e6ccd73a7, for both
+> the sidecar write and the telemetry copy.
+>
+> **4. Pairing does blocking file I/O on the UI thread:** Agreed. Moving it to a worker thread is a
+> bigger change with its own risks, so I'd like to leave it for a follow-up pull request.
+>
+> **5. Identical duplicates are paired with the first name in sorted order:** Fixed in 7baf11764.
+> Among identical copies it now takes the shortest name, then alphabetical. The test is now
+> `_duplicateCopiesPairWithShortestName` and expects `flight.tlog`.
+>
+> **6. The hand-aligned header additions don't follow clang-format:** Left as they are. No workflow
+> in `.github/workflows` runs clang-format; it runs only as a pre-commit hook. The added lines
+> match the hand alignment already in `CSVLogManager.h` and `CustomPlugin.h`. Happy to reformat if
+> you'd rather.
+
+**Reply to Copilot's two findings (second comment):**
+
+> Copilot's review summary listed two findings with no inline threads; both are fixed.
+>
+> **Avoid scanning the working directory when telemetry path is empty:** Fixed in 3a1d0ae29. An
+> empty telemetry path gives no candidates, and an empty log path makes `pairAll` return an empty
+> summary. Test: `_emptyPathsDoNotScanWorkingDirectory`.
+>
+> **Do not pair telemetry with runs lacking a vehicle:** Fixed in 3e70b266f. A folder whose sidecars
+> all have a null `vehicle_id` is `NoTelemetry` without looking at candidates. Test:
+> `_noVehicleRunIsNotPaired`.
 
 ### Task 0-4 — 2026-09-24 — hub commit 482802d — Done
 A signed TagTracker APK for the SIYI UniRC 7 Pro is built and verified, at
