@@ -298,6 +298,34 @@ like any other. `readpulsetable.py` in the Python prototype does not filter them
 review of an older flight would include them. The Python is the planning session's to fix. Logs
 written since version 7 have none; the bench test confirmed it.
 
+**Pull request #133 was bench-tested on the SIYI on 2026-10-12**, at TagTracker `3e70b266f`, by
+Michael with the planning session checking the files. Results are posted on the pull request.
+A normal run paired correctly. Force-closing TagTracker mid-detection and reopening it started a
+new pulse log 12 seconds later, with the "pulse logging had stopped" message, and pulses kept
+being written. The recording left unsaved by the force-close was recovered by QGroundControl at
+the next start and paired by the startup pass in `linkConfigurationsLoaded`. Restarting and
+pairing again copied nothing twice. The lost Start Detection reply was not reproduced: pressing
+Start the moment the bar went green timed out, but the controller never started detecting.
+
+**The Pair Telemetry Logs action was removed** on 2026-10-12, in `a99ff0aac`, at Michael's
+request. Its name did not say what it did, and the same pass already runs at every disconnect and
+every startup. Pairing is now automatic only. The two fly view QML files match Don's master again.
+
+**On the SIYI, a log folder lasts one TagTracker session, not one battery.** The SIYI's link is
+UDP, and QGroundControl keeps a UDP vehicle after its link drops, so powering the drone off and on
+does not end the connection. Two runs on separate power-ups land in one folder, paired with one
+telemetry file covering both. The folder only closes when TagTracker restarts.
+
+**After TagTracker restarts mid-detection, the detection bars stay blank** until Start Detection
+is pressed again, because Start Detection is what sets them up. Pulses are logged. Raised with Don
+on pull request #133 as outside its scope.
+
+**The Pi now keeps its system log across reboots** (set up 2026-10-12, `/var/log/journal`). If it
+ever stops in emergency mode again, `journalctl -b -1 -p err` on the next good boot shows why.
+
+**Copilot reviews of pull request #133 happen only when Don requests them.** Pushing a commit does
+not trigger one, and nothing merges without Don. If the pull request goes quiet, ask him.
+
 **Open question, not yet decided: how the triangulation gets into the build.** The
 interpolated surface needs a Delaunay triangulation, which is the standard way of
 joining scattered points into triangles so a value can be interpolated inside each one.
