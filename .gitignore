@@ -37,3 +37,6 @@
 # Sketches and drafts, deliberately not tracked.
 /scratch/
 Claude outputs/
+
+# Python bytecode
+__pycache__/

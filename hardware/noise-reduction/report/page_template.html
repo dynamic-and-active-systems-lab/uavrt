@@ -1,0 +1,248 @@
+<title>UAV-RT Noise Reduction</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans+Condensed:wght@500;600&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400&display=swap">
+<style>
+/* Layout: one reading column (~68ch) with charts allowed to run to a wider measure; a lab-notebook report, sections in the order the tests were reasoned through. */
+:root{
+  --bg:#f7f8f9; --panel:#ffffff; --ink:#111417; --ink2:#4d535a; --ink3:#7b828a; --rule:#dfe3e7; --grid:#e8ebee;
+  --accent:#1f5fae; --accent-soft:#e3edf9; --warn:#a4361f; --warn-soft:#fbeae5;
+  --s1:#2a78d6; --s2:#eb6834; --s3:#1baf7a; --s4:#eda100; --s5:#e87ba4; --s6:#008300; --s7:#6250d6; --s8:#e34948; --neutral:#8a8f95;
+  --f-display:"IBM Plex Sans Condensed","Arial Narrow",system-ui,sans-serif;
+  --f-body:"IBM Plex Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --f-mono:"IBM Plex Mono",ui-monospace,"SF Mono",Menlo,monospace;
+}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){
+  --bg:#141619; --panel:#1b1e22; --ink:#eef0f2; --ink2:#bfc5cc; --ink3:#8d949c; --rule:#2c3137; --grid:#262a2f;
+  --accent:#7fb0ee; --accent-soft:#1d2b3d; --warn:#f0937c; --warn-soft:#3a221c;
+  --s1:#3987e5; --s2:#d95926; --s3:#199e70; --s4:#c98500; --s5:#d55181; --s6:#0ca30c; --s7:#9085e9; --s8:#e66767; --neutral:#7d838a;
+  color-scheme:dark; } }
+:root[data-theme="dark"]{
+  --bg:#141619; --panel:#1b1e22; --ink:#eef0f2; --ink2:#bfc5cc; --ink3:#8d949c; --rule:#2c3137; --grid:#262a2f;
+  --accent:#7fb0ee; --accent-soft:#1d2b3d; --warn:#f0937c; --warn-soft:#3a221c;
+  --s1:#3987e5; --s2:#d95926; --s3:#199e70; --s4:#c98500; --s5:#d55181; --s6:#0ca30c; --s7:#9085e9; --s8:#e66767; --neutral:#7d838a;
+  color-scheme:dark; }
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font:16px/1.6 var(--f-body);margin:0}
+.wrap{max-width:1020px;margin:0 auto;padding-block:28px 64px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));display:flex;flex-direction:column;gap:44px}
+.prose{max-width:68ch}
+h1,h2,h3{font-family:var(--f-display);text-wrap:balance;line-height:1.15;margin:0}
+h1{font-size:clamp(30px,5vw,46px);font-weight:600;letter-spacing:-.01em}
+h2{font-size:26px;font-weight:600}
+h3{font-size:18px;font-weight:600}
+p{margin:0}
+.stack{display:flex;flex-direction:column;gap:14px}
+.eyebrow{font:500 12px/1 var(--f-mono);letter-spacing:.08em;text-transform:uppercase;color:var(--ink3)}
+.num{font-family:var(--f-mono);font-variant-numeric:tabular-nums}
+.draft{background:var(--warn-soft);color:var(--ink);border-left:3px solid var(--warn);padding:10px 14px;font-size:14px;border-radius:2px}
+header .meta{color:var(--ink2);font-size:14px}
+.tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px}
+.tile{background:var(--panel);border:1px solid var(--rule);border-radius:6px;padding:16px 18px;display:flex;flex-direction:column;gap:6px;min-width:0}
+.tile .big{font:500 34px/1.05 var(--f-mono);font-variant-numeric:tabular-nums;color:var(--ink)}
+.tile .big small{font-size:16px;color:var(--ink2)}
+.tile p{font-size:14px;color:var(--ink2)}
+section{display:flex;flex-direction:column;gap:16px}
+section > .lede{color:var(--ink2);max-width:68ch}
+.figure{background:var(--panel);border:1px solid var(--rule);border-radius:6px;padding:14px 14px 10px;display:flex;flex-direction:column;gap:10px;min-width:0}
+.figure figcaption{font-size:13px;color:var(--ink2);max-width:80ch}
+.chart{width:100%;position:relative}
+.chart svg{display:block;width:100%;height:auto;overflow:visible}
+.chart text{fill:var(--ink2);font:11px var(--f-body)}
+.chart .axis line,.chart .axis path{stroke:var(--neutral)}
+.chart .gridl{stroke:var(--grid)}
+.tip{position:absolute;pointer-events:none;background:var(--panel);border:1px solid var(--rule);border-radius:4px;padding:6px 8px;font:12px/1.4 var(--f-body);color:var(--ink);box-shadow:0 2px 10px rgba(0,0,0,.12);white-space:nowrap;z-index:5}
+.tip .k{display:inline-block;width:9px;height:9px;border-radius:2px;margin-right:6px;vertical-align:-1px}
+.controls{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.controls .lab{font-size:13px;color:var(--ink2);margin-right:4px}
+.chip{font:500 13px/1 var(--f-body);color:var(--ink);background:var(--panel);border:1px solid var(--rule);border-radius:999px;padding:7px 11px;cursor:pointer;display:inline-flex;align-items:center;gap:7px}
+.chip .sw{width:10px;height:10px;border-radius:2px;background:var(--c)}
+.chip[aria-pressed="false"]{color:var(--ink3)}
+.chip[aria-pressed="false"] .sw{background:transparent;outline:1.5px solid var(--c);outline-offset:-1.5px}
+.chip:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.seg{display:inline-flex;border:1px solid var(--rule);border-radius:6px;overflow:hidden}
+.seg button{font:500 13px/1 var(--f-body);background:var(--panel);color:var(--ink2);border:0;padding:8px 11px;cursor:pointer;border-right:1px solid var(--rule)}
+.seg button:last-child{border-right:0}
+.seg button[aria-pressed="true"]{background:var(--accent-soft);color:var(--ink)}
+select{font:14px var(--f-body);color:var(--ink);background:var(--panel);border:1px solid var(--rule);border-radius:6px;padding:6px 8px}
+.two{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:12px}
+.tablewrap{overflow-x:auto;border:1px solid var(--rule);border-radius:6px;background:var(--panel)}
+table{border-collapse:collapse;width:100%;font-size:14px}
+th,td{padding:8px 12px;text-align:left;border-bottom:1px solid var(--rule);vertical-align:top}
+th{font-weight:600;color:var(--ink2);font-size:12px;letter-spacing:.04em;text-transform:uppercase}
+td.n,th.n{text-align:right;font-family:var(--f-mono);font-variant-numeric:tabular-nums;white-space:nowrap}
+tr:last-child td{border-bottom:0}
+.calc{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:16px}
+@media (max-width:720px){.calc{grid-template-columns:1fr}}
+.slider{display:flex;flex-direction:column;gap:4px}
+.slider label{font-size:14px;display:flex;justify-content:space-between;gap:12px}
+.slider input{width:100%;accent-color:var(--accent)}
+.out{display:flex;flex-direction:column;gap:10px}
+.out .row{display:flex;justify-content:space-between;gap:12px;border-bottom:1px solid var(--rule);padding-bottom:8px;font-size:14px}
+.out .row b{font:500 20px var(--f-mono);font-variant-numeric:tabular-nums}
+.presets{display:flex;flex-wrap:wrap;gap:6px}
+.eq{font-family:var(--f-mono);font-size:14px;background:var(--panel);border:1px solid var(--rule);border-radius:6px;padding:10px 12px;overflow-x:auto;white-space:nowrap}
+details{background:var(--panel);border:1px solid var(--rule);border-radius:6px;padding:12px 14px}
+details > summary{cursor:pointer;font-weight:600;font-family:var(--f-display);font-size:17px}
+details[open] > summary{margin-bottom:10px}
+details .stack{max-width:76ch}
+ul{margin:0;padding-left:1.2em;display:flex;flex-direction:column;gap:6px}
+dl{margin:0;display:grid;grid-template-columns:max-content 1fr;gap:6px 16px;font-size:14px}
+dt{font-weight:600}
+dd{margin:0;color:var(--ink2)}
+@media (max-width:560px){dl{grid-template-columns:1fr} dd{margin-bottom:6px}}
+footer{font-size:13px;color:var(--ink2);border-top:1px solid var(--rule);padding-top:16px}
+code{font-family:var(--f-mono);font-size:.9em}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+
+<div class="wrap">
+<header class="stack">
+  <span class="eyebrow">UAV-RT tracking drone · test report · draft 0.1 · 19 Nov 2026</span>
+  <h1>How much quieter the drone got</h1>
+  <p class="meta">Michael W. Shafer, Northern Arizona University. Analysis and drafting assisted by Claude. All measurements at 160.172 MHz.</p>
+  <p class="draft">Draft. Covers the tests up to 18 November 2026. A same-day Airspy Mini vs HF+ flight comparison and a background-noise reference with the antenna on a mast are still to come, and may change the numbers marked as estimates.</p>
+</header>
+
+<div class="tiles" aria-label="Key results">
+  <div class="tile"><span class="eyebrow">In-flight noise, Ponui → now</span><span class="big num">−18<small> dB</small></span><p>About −145 dBm/Hz at Ponui in March 2025; −163.5 dBm/Hz on 14 November 2026.</p></div>
+  <div class="tile"><span class="eyebrow">Above the receiver's own noise</span><span class="big num">+3.3<small> dB</small></span><p>In flight now, with the choke and 15 ft coax. It was +22 dB at Ponui.</p></div>
+  <div class="tile"><span class="eyebrow">Noise figure, as installed</span><span class="big num">7.2 <small>/</small> 6.3<small> dB</small></span><p>Airspy HF+ / Airspy Mini. Nearly equal; the HF+ handles strong signals far better.</p></div>
+</div>
+
+<section id="overview">
+  <h2>Ground and flight, every configuration</h2>
+  <p class="lede">Each row shows the noise reaching the receiver with the drone on the ground and motors off, and in steady flight. The dashed lines are each receiver's own internal noise, measured with a 50 Ω load in place of the antenna. Anything right of them came from outside the receiver.</p>
+  <figure class="figure"><div class="chart" id="dumbbell"></div>
+    <figcaption>Hover a point for its value. F2–F7: 14 November 2026, Airspy HF+. P2, P3: Ponui, March 2025, Airspy Mini, old setup with no ferrites or choke.</figcaption></figure>
+</section>
+
+<section id="timelines">
+  <h2>Noise over each flight</h2>
+  <p class="lede">The noise floor second by second, already converted to dBm/Hz at the receiver input so the old and new receivers share one scale. Choose which flights to show.</p>
+  <div class="controls" id="tl-chips" role="group" aria-label="Flights shown"></div>
+  <figure class="figure"><div class="chart" id="tl-chart"></div>
+    <figcaption>The jump near the start of each 2026 flight is takeoff; excursions near the end are probably landing. No telemetry was recorded for these flights yet, so flight stages are read from the noise. Ponui flights were much longer.</figcaption></figure>
+</section>
+
+<section id="spectra">
+  <h2>What the noise looks like across the channel</h2>
+  <p class="lede">The detector listens to a 3.84 kHz-wide channel. At Ponui the flight noise was flat across it. Now the floor is low but a few narrow interference tones remain, strongest without the choke.</p>
+  <div class="controls" id="sp-chips" role="group" aria-label="Spectra shown"></div>
+  <div class="controls"><span class="lab">Stage</span><div class="seg" id="sp-seg"><button aria-pressed="true" data-v="steady">Steady flight</button><button aria-pressed="false" data-v="ground">Ground, motors off</button></div></div>
+  <figure class="figure"><div class="chart" id="sp-chart"></div>
+    <figcaption>Median spectrum over each stage, in dBm/Hz at the receiver input.</figcaption></figure>
+</section>
+
+<section id="bench">
+  <h2>Calibrating the two receivers</h2>
+  <p class="lede">Neither receiver reports power in real units, so on 18 November a signal generator fed a known tone at 160.1725 MHz into each, through the drone's own processing. That turns every recording into dBm and measures each receiver's own noise. It also showed how each copes with a strong signal: step the tone up and watch the Mini's noise rise around it while the HF+ stays flat.</p>
+  <div class="controls"><span class="lab">Tone level</span><div class="seg" id="bn-seg">
+    <button aria-pressed="false" data-v="load">50 Ω load</button><button aria-pressed="false" data-v="-120">−120 dBm</button><button aria-pressed="false" data-v="-110">−110 dBm</button><button aria-pressed="false" data-v="-100">−100 dBm</button><button aria-pressed="true" data-v="-90">−90 dBm</button></div></div>
+  <div class="two">
+    <figure class="figure"><h3>Airspy Mini (gain 21)</h3><div class="chart" id="bn-mini"></div></figure>
+    <figure class="figure"><h3>Airspy HF+</h3><div class="chart" id="bn-hf"></div></figure>
+  </div>
+  <div class="tablewrap"><table>
+    <thead><tr><th></th><th class="n">Airspy Mini</th><th class="n">Airspy HF+</th></tr></thead>
+    <tbody>
+      <tr><td>Own noise at the receiver input</td><td class="n" id="t-nm"></td><td class="n" id="t-nh"></td></tr>
+      <tr><td>Noise figure, as installed</td><td class="n">6.3–6.4 dB</td><td class="n" id="t-nfh"></td></tr>
+      <tr><td>Noise near the tone, rise at −110 / −100 / −90 dBm</td><td class="n">+0.4 / +4.8 / +14.0 dB</td><td class="n">&lt; 0.2 dB</td></tr>
+      <tr><td>Linearity, −120 to −90 dBm</td><td class="n">within 0.4 dB</td><td class="n">within 0.1 dB</td></tr>
+      <tr><td>Repeat run agreement</td><td class="n">0.05 dB</td><td class="n">—</td></tr>
+    </tbody></table></div>
+</section>
+
+<section id="budget">
+  <h2>How much of what's left is the drone?</h2>
+  <p class="lede">Noise powers add. In flight the antenna delivers outside noise (from the drone and from the surroundings), the coax and choke attenuate it, and the receiver adds its own. Move the sliders to see how much outside noise it takes to raise the floor by a given amount. The present flight rise of 3.3 dB needs only about 10 dB of outside noise above thermal, which is ordinary background for a semi-rural site.</p>
+  <div class="figure"><div class="calc">
+    <div class="stack">
+      <div class="slider"><label for="b-fa"><span>Outside noise at the antenna</span><span class="num" id="b-fa-v"></span></label><input id="b-fa" type="range" min="-10" max="35" step="0.01" value="9.94"></div>
+      <div class="slider"><label for="b-nf"><span>Receiver noise figure</span><span class="num" id="b-nf-v"></span></label><input id="b-nf" type="range" min="2" max="12" step="0.1" value="7.2"></div>
+      <div class="slider"><label for="b-l"><span>Coax and choke loss</span><span class="num" id="b-l-v"></span></label><input id="b-l" type="range" min="0" max="4" step="0.1" value="1.8"></div>
+      <div class="stack" style="gap:6px"><span class="eyebrow">Load a case</span><div class="presets" id="b-presets"></div></div>
+    </div>
+    <div class="out">
+      <div class="row"><span>Noise above the receiver's own</span><b id="b-rise"></b></div>
+      <div class="row"><span>Noise at the receiver input</span><b id="b-in"></b></div>
+      <div class="row"><span>Detection range compared with a perfectly quiet antenna</span><b id="b-range"></b></div>
+      <div class="chart" id="b-chart"></div>
+    </div>
+  </div>
+  <p style="font-size:13px;color:var(--ink2)">Reference markers are ITU-R P.372 median man-made and galactic noise at 160 MHz. "Measured" points are inferred from the flights with the relation in Methods. They assume the motors-off ground reading is the receiver's own noise; with the antenna lying on the soil it may also be quieter than a raised antenna would be, which the planned mast test will check.</p></div>
+</section>
+
+<section id="vna">
+  <h2>Cable and choke loss</h2>
+  <p class="lede">Measured on a NanoVNA on 17 November. The loss of the generator cable and choke (0.6 dB) is the correction applied in the calibration above.</p>
+  <div class="controls"><div class="seg" id="vn-seg"><button aria-pressed="true" data-v="il">Insertion loss</button><button aria-pressed="false" data-v="rl">Return loss</button></div></div>
+  <figure class="figure"><div class="chart" id="vn-chart"></div>
+    <figcaption>Readings as taken. Each reads about 0.15 dB low, because the calibration treated its 30 cm thru cable as lossless.</figcaption></figure>
+  <div class="tablewrap"><table>
+    <thead><tr><th>Component</th><th class="n">Loss as read, 160 MHz</th><th class="n">Corrected</th><th class="n">Return loss</th></tr></thead>
+    <tbody id="vn-table"></tbody></table></div>
+</section>
+
+<section id="configs">
+  <h2>Tests and configurations</h2>
+  <div class="tablewrap"><table>
+    <thead><tr><th>Test</th><th>Date</th><th>Configuration</th><th>Receiver</th><th class="n">Ground</th><th class="n">Flight</th><th class="n">Flight above own noise</th></tr></thead>
+    <tbody id="cfg-table"></tbody></table></div>
+  <p style="font-size:13px;color:var(--ink2)">Ground and flight in dBm/Hz at the receiver input. Changes since Ponui: Airspy HF+ in place of the Mini; a 12-turn crossover common-mode choke on a Fair-Rite 5943002701 (mix 43) at the antenna input; RF-shielding fabric over the fuselage and arms with a bonded USB bulkhead; mix-43 ferrites on battery, motor-controller, regulator, radio-link, CAN and GPS cables; wrapped and grounded regulator and battery monitor.</p>
+</section>
+
+<section id="methods" class="stack">
+  <h2>Methods</h2>
+  <details><summary>Noise floor from a recording</summary><div class="stack">
+    <p>Every test used the drone's own receive chain. The detector writes raw complex samples at 3750 samples/s (Mini) or 3840 samples/s (HF+). Each second is cut into blocks of N = 256 samples, Hann-windowed:</p>
+    <div class="eq">P<sub>m</sub>(f<sub>k</sub>) = |Σ<sub>n</sub> w[n] x<sub>m</sub>[n] e<sup>−j2πkn/N</sup>|² / (f<sub>s</sub> Σ<sub>n</sub> w[n]²)</div>
+    <div class="eq">N̂ = median over the inner 80 % of bins of [ median over blocks of P<sub>m</sub>(f<sub>k</sub>) ]</div>
+    <p>The median over blocks removes tag pulses (20 ms in every 1.33 s). It reads about 1.6 dB under the mean, a bias that cancels because the calibration uses the same estimator. Script: <code>tools/noise_floor.py</code>.</p></div></details>
+  <details><summary>Calibration and noise figure</summary><div class="stack">
+    <p>Tone power is the spectrum above the local noise, summed over the tone's bins; the gain from dBm at the input to receiver units follows from the generator setting and the 0.6 dB path loss:</p>
+    <div class="eq">S = Σ<sub>k∈tone</sub> (P̄(f<sub>k</sub>) − N<sub>local</sub>) Δf &nbsp;&nbsp;&nbsp; G = 10 log₁₀ S − (P<sub>gen</sub> − L<sub>path</sub>)</div>
+    <div class="eq">N<sub>in</sub> = 10 log₁₀ N<sub>load</sub> − G &nbsp;&nbsp;&nbsp; NF = N<sub>in</sub> − (−173.9 dBm/Hz at 295 K)</div>
+    <div class="eq">N<sub>flight</sub> = N<sub>in,load</sub> + (m<sub>flight</sub> − m<sub>load</sub>)</div>
+    <p>The last line converts a flight's floor m, in receiver units, to dBm/Hz through the same receiver's calibration. Script: <code>tools/bench_calibration.py</code>.</p></div></details>
+  <details><summary>Comparing Mini and HF+ readings directly</summary><div class="stack">
+    <p>Each receiver reports power in its own arbitrary units. The calibration gives each one's gain G from dBm at its input to its units, and the difference between the two gains converts one receiver's units into the other's:</p>
+    <div class="eq">&#916;G = G<sub>Mini</sub> &#8722; G<sub>HF+</sub> = 59.86 &#8722; 24.11 = 35.7 dB &nbsp;&nbsp;&nbsp; m<sub>HF+ units</sub> = m<sub>Mini units</sub> &#8722; &#916;G</div>
+    <p>It holds because both readings are per hertz, so the different sample rates (3750 and 3840 samples/s) drop out; both use the same estimator, whose bias differed by only 0.04 dB between the receivers; and the same generator, cable and choke fed both, so their errors cancel in the difference. It applies at the calibrated settings only: Mini gain 21 and the HF+'s fixed settings. Ponui used Mini gain 20.</p>
+    <p><b>Worked example.</b> Ponui flight 3 in steady flight read &#8722;86.9 in Mini units, which is &#8722;86.9 &#8722; 35.7 = &#8722;122.6 in HF+ units. Flight F2 on 14 November read &#8722;141.1 in HF+ units. The 18.5 dB difference agrees within rounding with the 18.4 dB from converting both to dBm/Hz.</p></div></details>
+  <details><summary>Outside noise and the noise budget</summary><div class="stack">
+    <p>With noise factor F = 10<sup>NF/10</sup> and outside noise F<sub>a</sub>, both relative to kT₀, and a feed of loss L at room temperature:</p>
+    <div class="eq">F<sub>a</sub>′ = F<sub>a</sub>/L + (1 − 1/L) &nbsp;&nbsp;&nbsp; rise = 10 log₁₀[(F<sub>a</sub>′ + F − 1) / F] &nbsp;&nbsp;&nbsp; F<sub>a</sub>′ = F·10<sup>rise/10</sup> − (F − 1)</div>
+    <div class="eq">ITU-R P.372: F<sub>am</sub> = c − d log₁₀ f<sub>MHz</sub> &nbsp; (city 76.8/27.7, residential 72.5/27.7, rural 67.2/27.7, quiet rural 53.6/28.6, galactic 52.0/23.0)</div>
+    <p>Free-space detection range scales as 10<sup>−rise/20</sup>.</p></div></details>
+  <details><summary>Cable measurements</summary><div class="stack">
+    <p>Insertion loss = −20 log₁₀|S₂₁|; return loss = −20 log₁₀|S₁₁|; mismatch loss = −10 log₁₀(1 − |S₁₁|²). Each series pair read more than the sum of its parts by the calibration thru cable's loss (0.05–0.17 dB, with 1.5 ns of extra delay), which identifies the correction.</p></div></details>
+</section>
+
+<section id="caveats">
+  <h2>Caveats and next tests</h2>
+  <div class="two">
+    <div class="figure"><h3>Known limits</h3><ul style="font-size:14px">
+      <li>Different sites: rural New Zealand and semi-rural Arizona have different background noise.</li>
+      <li>Ponui ran the Mini at gain 20; the calibration used 21. Likely 1–2 dB on the Ponui values.</li>
+      <li>No telemetry for the 2026 flights; heights also differed between configurations.</li>
+      <li>On the ground the antenna lies on the soil and hears little outside noise, so "ground" is not quite "everything except the motors".</li>
+      <li>Absolute levels are good to a few tenths of a dB; the comparison between receivers is tighter.</li></ul></div>
+    <div class="figure"><h3>Planned</h3><ul style="font-size:14px">
+      <li>Same-day flights alternating HF+, Mini, HF+ with choke and 15 ft coax: does the Mini pick up out-of-band signals the HF+ rejects?</li>
+      <li>Background reference: antenna on a mast, drone off; then drone powered at the base, motors off.</li>
+      <li>A strong-signal pass toward tag-like pulses from a Tabor LS3081P generator.</li>
+      <li>PX4 flight logs, to replace inferred flight stages with altitude and throttle.</li></ul></div>
+  </div>
+</section>
+
+<footer class="stack">
+  <p>Raw recordings: OneDrive <code>FLIGHT_TESTING_DATA</code> (2025-03-23-Ponui-Day8-Sun, 2026-11-14-Rail-X_Ranch_Road, 2026-11-18-Office_HF_v_Mini_Testing). Derived data, per-test notes and the PDF version of this report: <code>hardware/noise-reduction/</code> in the UAV-RT hub repository. Rebuild the data with <code>tools/noise_report_data.py</code>.</p>
+</footer>
+</div>
+
+<script id="report-data" type="application/json">__DATA__</script>
+<script>
+__SCRIPT__
+</script>

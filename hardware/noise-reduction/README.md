@@ -1,0 +1,53 @@
+# Receiver noise reduction
+
+The record of how the noise reaching the tracking drone's receiver was measured and reduced, from
+the Ponui fieldwork in March 2025 to now. Started 2026-11-19.
+
+**Where it stands (draft 0.1, 2026-11-19):** in steady flight the noise at the receiver input fell
+from about −145 dBm/Hz at Ponui to −163.5 dBm/Hz on 2026-11-14, about 18 dB. It now sits 3.3 dB above
+the receiver's own internal noise, against 22 dB at Ponui. Details, methods and caveats are in the
+report.
+
+## Contents
+
+| Path | What it is |
+|---|---|
+| `report/noise_report.pdf` | The report. Source `noise_report.tex`; figures from `make_figures.py`. |
+| `report/uavrt-noise-reduction.html` | The same report as an interactive page. Self-contained; open in a browser. |
+| `tests/<date>-<name>/` | One folder per test: what was done, the results, and notes written at the time. |
+| `data/` | Small derived data the report is built from: noise floors per second, spectra, calibration, VNA traces. |
+
+Tests so far:
+
+| Folder | Test |
+|---|---|
+| `tests/2026-11-14-flights-rail-x-ranch/` | Seven flights, five with radio data: choke and coax-extension configurations, no tag out. |
+| `tests/2026-11-17-vna-cables/` | NanoVNA loss and match of the 15 ft RG-316, the choke, and the bench cable. Includes the S2P files. |
+| `tests/2026-11-18-bench-mini-vs-hf/` | Signal-generator calibration of the Airspy Mini and HF+: noise figure, units, strong-signal behaviour. |
+
+The Ponui reference flights (2025-03-22 UTC) have no test folder of their own; they are read
+directly from their recordings.
+
+## Raw data
+
+Recordings stay in OneDrive `FLIGHT_TESTING_DATA/`, too large for git:
+`2025-03-23-Ponui-Day8-Sun`, `2026-11-14-Rail-X_Ranch_Road`, `2026-11-18-Office_HF_v_Mini_Testing`.
+
+## Rebuilding
+
+From the hub root:
+
+```bash
+python3 tools/noise_report_data.py <folder containing the FLIGHT_TESTING_DATA test folders> .
+cd hardware/noise-reduction/report
+python3 make_figures.py ../data figures
+latexmk -pdf noise_report.tex
+python3 build_page.py
+```
+
+`tools/noise_floor.py` and `tools/bench_calibration.py` are the measurement routines.
+
+## Related
+
+- `../emi-design.md`: the ferrite and shielding design, with the reasoning for each change.
+- `../NAU_VHF_DRONE.md`: the aircraft, including the ferrite table, which records measured effects as they arrive.

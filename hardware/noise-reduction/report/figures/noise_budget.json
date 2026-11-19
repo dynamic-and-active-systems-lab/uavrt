@@ -1,0 +1,11 @@
+{
+ "external_now_antenna_db": 9.93964679739517,
+ "external_ponui_antenna_db": 30.212458454153534,
+ "itu_fam_160MHz": {
+  "City": 15.732951222578052,
+  "Residential": 11.432951222578055,
+  "Rural": 6.132951222578058,
+  "Quiet rural": -9.451176716038553,
+  "Galactic": 1.294508235353618
+ }
+}

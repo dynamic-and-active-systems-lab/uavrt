@@ -1,0 +1,9 @@
+flight,receiver,configuration,ground_seconds,steady_seconds,ground_dBm_per_Hz,steady_dBm_per_Hz,ground_above_own_floor_db,steady_above_own_floor_db,rise_db
+F2,hf,"Choke + 15 ft coax, ~170 ft, 30 s hover",0-9,20-135,-167.3,-163.48,-0.54,3.27,3.81
+F3,hf,"Choke + 15 ft coax, ~170 ft",0-8,18-85,-166.75,-163.47,0.01,3.29,3.27
+F5,hf,"No choke + 15 ft coax, 50 ft",0-7,18-80,-165.92,-161.75,0.84,5.01,4.17
+F6,hf,"No choke, no extension, 50 ft",0-8,16-80,-155.21,-156.6,11.55,10.16,-1.39
+F7,hf,"Choke, no extension, 50 ft",0-8,20-70,-165.29,-161.52,1.47,5.24,3.77
+P1,mini,"Ponui flight 1 (old setup, Mini gain 20)",,30-450,,-145.42,,22.16,
+P2,mini,"Ponui flight 2 (old setup, Mini gain 20)",0-18,30-1050,-161.56,-145.51,6.02,22.07,16.05
+P3,mini,"Ponui flight 3 (old setup, Mini gain 20)",0-18,30-600,-162.46,-145.09,5.12,22.48,17.37

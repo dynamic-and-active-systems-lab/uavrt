@@ -338,6 +338,78 @@ recommends the first. Until Michael answers, no task should implement the surfac
 
 ## Open — waiting on the planning session
 
+### From the hub session — 2026-11-03 — no commit — Done
+
+The hub session is the Cowork conversation that set up this hub repository in early September
+and did the first consolidation work. It is neither a task nor the planning session. Michael
+asked it today whether its conversation was archived well enough for a fresh session to pick up.
+Most of what it settled is already in these documents. Below are the pieces that are not, or
+that have gone stale since.
+
+**For the planning session**
+
+1. Correct the tunnel protocol pin in the system reference. The tunnel protocol is the shared
+   header, `TunnelProtocol.h`, that defines every message between TagTracker and the controller
+   on the Pi. `docs/SOFTWARE_CONTEXT.md` says both builds pin it at `81ed30ac`, which is
+   protocol version 5. That is several versions old. Michael's Pi notes of 2026-10-30
+   (`pi5-troubleshooting.md`, untracked at the hub root) say both sides must now be on
+   **version 9**, from 2026-10-24. The local git refs here have not been fetched since early
+   October and still show version 7, so read the two pins from a fresh fetch, not from this
+   entry.
+2. Add to "Decisions already made" what a protocol version mismatch looks like, because it cost
+   a day on 2026-09-30. TagTracker's controller box on the toolbar stays red, exactly as if no
+   heartbeat were arriving, and TagTracker shows a one-line mismatch message once per app start.
+   That day's cause was an Android build of TagTracker made just before Don's version 7 change,
+   talking to a controller that had just been updated to version 7. The quick check is that one
+   message, or comparing the two pinned commits.
+3. Also add: the controller sends TagTracker nothing until it has heard a ground station's own
+   heartbeat, and it accepts only ground station system ID 255
+   (`MavlinkTagController2/controller/Connection.cpp`). A ground station whose heartbeat never
+   reaches the Pi, or that uses another ID, gives the same red box as a mismatch. Worth knowing
+   before the next radio change.
+4. Correct the build section of the field review specification. `docs/FIELD_REVIEW.md`
+   section 7 still says Qt 6.6.3 is required and that moving off it may break the Herelink.
+   "Decisions already made" already records Qt 6.11.1 and asks for the older documents to be
+   corrected; this one has not been.
+5. Decide whether tasks may run MATLAB, and say which in `CLAUDE.md`. It lists running MATLAB as
+   something the agent cannot do. That holds for the Cowork sessions but not for a task: MATLAB
+   R2025a runs from the command line on Michael's Mac with `matlab -batch`, given the full path
+   to MATLAB's `bin` folder. Michael ran it that way on 2026-09-01 and 2026-09-02 to check the
+   bearing estimate. A task allowed to run MATLAB would no longer need to verify MATLAB maths by
+   rewriting it in Python, which the current rule requires.
+6. Nothing to act on in the hub session's handoff note of 2026-09-30,
+   `_baseline/HANDOFF_protocol_v7_telemetry_pairing.md`. Tasks 0-2 to 0-5 and the bench-test
+   notes in "Decisions already made" cover all of it.
+
+7. Add the new `hardware/` folder at the hub root to the context documents table in `CLAUDE.md`.
+   The folder itself was committed by the hub session on 2026-11-19, at Michael's request. Michael asked for it on
+   2026-11-03 because hardware knowledge had lived only in individual sessions. It holds a page
+   for his drone (`NAU_VHF_DRONE.md`, sections matching Don's page for his own aircraft, mostly
+   blank so far), diagnosis guides (`field-notes.md`, starting with the four causes of a red
+   controller bar), and Michael's Raspberry Pi 5 notes of 2026-10-30 to 11-02
+   (`pi5-troubleshooting.md`). That last file replaces the older copy that was untracked at the
+   hub root, which is now in `_baseline/`.
+8. Decide which file is the home for facts about the Pi on the aircraft. Several are now in both
+   "Decisions already made" and `hardware/`: the extra serial line a Pi 5 needs, ending a bench
+   connection with `sudo poweroff`, and the Pi's system log being kept across reboots. Michael's
+   newer notes say that last one should be switched off again after debugging, to cut writes to
+   the card. Suggested split: `hardware/` holds the facts about the aircraft, and "Decisions
+   already made" points to it.
+
+9. *Added 2026-11-19, no action needed.* The hub session committed `hardware/noise-reduction/`
+   (the noise measurements, derived data and the draft report, PDF and interactive HTML), the three
+   scripts it uses in `tools/` (`noise_floor.py`, `bench_calibration.py`, `noise_report_data.py`), and
+   a `__pycache__/` line in `.gitignore`, at Michael's request. Michael asked for the noise work to be archived in one place;
+   `hardware/noise-reduction/README.md` is its index. The older `hardware/measurements/` folder is
+   empty and was replaced by it.
+
+**For Michael**
+
+1. The documents now have one owner. That handoff note told the field review session that the
+   hub session keeps the hub documents; the planning session has kept them ever since. From
+   today the hub session does not edit `docs/` or `CLAUDE.md`. If it finds something, it writes
+   an entry here, the way a task does. Say so if you want a different split.
+
 ### Task 0-5 — answered 2026-10-06 by the planning session
 
 Read all six commits, and item 1's logic in detail, including that a failed Start Detection clears
