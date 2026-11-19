@@ -434,7 +434,7 @@ These are the principles worked through in the chat session that shaped the desi
   - at poor terminations such as pigtails or unbonded connectors.
 - **Terminal voltage** is the voltage between the antenna's driven element and its other half, measured at the feed point.
 
-**A.3 Why the old setup was noisy.** Old setup (Ponui, March 2025): drone → USB bulkhead, not deliberately bonded to the shield → USB extension → Airspy Mini → 15 ft coax → antenna. No choke and no ferrites on the aircraft's wiring. The USB extension had no ferrites on the first flights and two snap-on ferrites (two and three passes) by the last day; the pulse logs suggest those cut the in-flight noise about 8 dB (`noise-reduction/tests/2025-03-ponui-trip-pulse-logs/`).
+**A.3 Why the old setup was noisy.** Old setup (Ponui, March 2025): drone → USB bulkhead, not deliberately bonded to the shield → USB extension → Airspy Mini → 15 ft coax → antenna. No choke and no ferrites on the aircraft's wiring. The USB extension had no ferrites up to Day 2 and two snap-on ferrites (two and three passes) from Day 3. Those two ferrites alone cut the in-flight noise about 10.5 dB and the motors-off noise 17–20 dB, which confirms the USB cable as the main path (`noise-reduction/tests/2025-03-ponui-usb-ferrites/`).
 - Common-mode current ran from the drone along the USB, across the Mini, and down the outside of the coax.
 - The R-1000 heard it only within a few centimeters of the coax. That is the near-field signature of current on that conductor (near field ≈ λ/2π ≈ 30 cm at 150 MHz).
 - With no ground plane on the antenna, the coax shield was effectively part of the antenna and was wired straight to the noise source.
