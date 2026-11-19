@@ -16,7 +16,7 @@ in Michael's notes, and in Don Gagne's page for his own aircraft.
 | `emi-design.md` | The ferrite and shielding design for Michael's drone, 2026-11-09: every decision and the reasoning and source behind it, the options rejected, the likely noise sources ranked, the A/B test plan, and the theory. Nothing in it is measured yet. |
 | `field-notes.md` | Diagnosis guides for problems that look the same but have different causes. Starts with the red controller bar on TagTracker. |
 | `pi5-troubleshooting.md` | Michael's notes on the Raspberry Pi 5 from 2026-10-30 to 11-02: the auto-start change, the failing microSD card, the wrong serial port on a fresh install, and the fresh-install checklist. |
-| `noise-reduction/` | The record of how the receiver noise was measured and reduced: one folder per test under `tests/`, small derived data under `data/`, and the report (PDF and interactive HTML) under `report/`. Raw recordings stay in OneDrive `FLIGHT_TESTING_DATA`. Scripts are `tools/noise_floor.py` and `tools/bench_calibration.py` in the hub. |
+| `noise-reduction/` | The record of how the receiver noise was measured and reduced: one folder per test under `tests/`, small derived data under `data/`, and the report (PDF and interactive HTML) under `report/`. Raw recordings stay in OneDrive `FLIGHT_TESTING_DATA`. Scripts are `tools/noise_floor.py`, `tools/bench_calibration.py`, `tools/pulse_log_noise.py` and `tools/raw_capture_floor.py` in the hub. |
 | `photos/` | Small photos of wiring and ferrite placement. Large photos stay in OneDrive; link to them. |
 
 **Don's aircraft is documented in his repository, not here:**

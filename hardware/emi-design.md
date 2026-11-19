@@ -85,7 +85,7 @@ These fill blanks on `NAU_VHF_DRONE.md`. All **[USER]** unless marked.
   - Ripple 20 mV (50 V in, 5 V at 4 A) **[DS: Matek]**. This says nothing about 150 MHz noise **[REASON]**.
   - 50 × 32 × 7 mm, 18 g **[DS: Matek]**.
   - **OUT-2 (fixed 5 V) powers the Pi 5** **[USER]**, so the PM12S-4A is the **Pi 5's supply**. OUT-1 (set to 5 V) powers the Cube Orange+ **[USER, by elimination: both outputs feed only the Cube and the Pi 5]**.
-- **History:** previously a Castle Creations CC BEC 2.0. A colleague reported the Matek UBEC DUO, now discontinued, was quieter in this band. Matek lists the PM12S-4A as its successor. Don's aircraft flies the UBEC DUO **[DON]**.
+- **History:** previously a Castle Creations CC BEC 2.0, replaced after the Cumbria fieldwork (November 2025). A colleague reported the Matek UBEC DUO, now discontinued, was quieter in this band. Matek lists the PM12S-4A as its successor. Don's aircraft flies the UBEC DUO **[DON]**.
 - **PDB** feeds the 4 ESCs, the SIYI air unit directly, and the PM12S-4A.
 
 ### Avionics
@@ -434,7 +434,7 @@ These are the principles worked through in the chat session that shaped the desi
   - at poor terminations such as pigtails or unbonded connectors.
 - **Terminal voltage** is the voltage between the antenna's driven element and its other half, measured at the feed point.
 
-**A.3 Why the old setup was noisy.** Old setup: drone → USB extension → Airspy Mini → 15 ft coax → monopole, with no ferrites and no bond.
+**A.3 Why the old setup was noisy.** Old setup (Ponui, March 2025): drone → USB bulkhead, not deliberately bonded to the shield → USB extension → Airspy Mini → 15 ft coax → antenna. No choke and no ferrites on the aircraft's wiring. The USB extension had no ferrites on the first flights and two snap-on ferrites (two and three passes) by the last day; the pulse logs suggest those cut the in-flight noise about 8 dB (`noise-reduction/tests/2025-03-ponui-trip-pulse-logs/`).
 - Common-mode current ran from the drone along the USB, across the Mini, and down the outside of the coax.
 - The R-1000 heard it only within a few centimeters of the coax. That is the near-field signature of current on that conductor (near field ≈ λ/2π ≈ 30 cm at 150 MHz).
 - With no ground plane on the antenna, the coax shield was effectively part of the antenna and was wired straight to the noise source.

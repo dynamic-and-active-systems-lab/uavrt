@@ -46,7 +46,7 @@ part's label when you have one.
 | 5 V (OUT-1) | Matek PM12S-4A dual regulator | Cube Orange+. *Inferred*: both outputs feed only the Cube and the Pi, and OUT-2 is confirmed as the Pi's. |
 | 5 V (OUT-2) | Matek PM12S-4A dual regulator | Pi 5. The Pi reports under-voltage in its heartbeat (the orange bar), so this rail is visible in TagTracker. |
 
-The PM12S-4A replaced a Castle Creations CC BEC 2.0. A colleague reported the Matek UBEC DUO, now
+The PM12S-4A replaced a Castle Creations CC BEC 2.0 after the Cumbria fieldwork (November 2025). A colleague reported the Matek UBEC DUO, now
 discontinued, was quieter at VHF; Matek lists the PM12S-4A as its successor. It is a different
 design and its noise is not yet measured.
 
