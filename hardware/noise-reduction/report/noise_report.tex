@@ -14,7 +14,7 @@
 \newcommand{\draftnote}[1]{\textcolor{BrickRed}{\textit{[#1]}}}
 
 \title{Reducing receiver noise on the UAV-RT tracking drone\\[4pt]
-\large Test report --- draft 0.1}
+\large Test report --- draft 0.2}
 \author{Michael W.\ Shafer, Northern Arizona University\\
 \small Analysis and drafting assisted by Claude (Anthropic)}
 \date{19 November 2026}
@@ -23,7 +23,8 @@
 \maketitle
 
 \noindent\fbox{\parbox{\dimexpr\linewidth-2\fboxsep-2\fboxrule}{\small
-\textbf{Draft.} This report covers the tests run up to 18 November 2026. Two further tests are
+\textbf{Draft.} This report covers the tests run up to 18 November 2026, and the field data from
+Ponui Island (March 2025) and Cumbria (November 2025) that show how the noise came down. Two further tests are
 planned and will be added: a same-day flight comparison of the Airspy Mini and Airspy HF+, and a
 reference measurement of the site's background noise with the antenna raised on a mast and the drone
 switched off (Section~\ref{sec:next}). Numbers that those tests may change are marked in the text.}}
@@ -31,19 +32,23 @@ switched off (Section~\ref{sec:next}). Numbers that those tests may change are m
 \section{Summary}
 
 The tracking drone receives very-high-frequency (VHF) radio pulses from wildlife tags near
-160~MHz. During the March 2025 fieldwork on Ponui Island, the receiver's background noise rose by
-16--17~dB whenever the drone flew. Between then and November 2026 the receiver, its antenna feed and
-the drone's wiring were changed to reduce that noise. This report measures the result.
+160~MHz. At the start of the March 2025 fieldwork on Ponui Island, the noise reaching the receiver
+in flight was 33~dB above the receiver's own internal noise, and 22~dB above it even on the ground
+with the motors off. Between then and November 2026 the receiver, its antenna feed and the drone's
+wiring were changed in four stages to reduce that noise. This report measures the result.
 
 \begin{itemize}
-\item \textbf{The noise reaching the receiver in flight fell by about 18~dB}: from about
-$-145$\dBmHz{} at Ponui to $-163.5$\dBmHz{} on 14 November 2026 (Figure~\ref{fig:dumbbell}).
-The two figures were measured with different receivers at different sites; a signal-generator
-calibration of both receivers (Section~\ref{sec:bench}) puts them in the same units.
+\item \textbf{The noise reaching the receiver in flight fell by 28.5~dB}: from $-135.0$\dBmHz{} on
+the second day at Ponui to $-163.5$\dBmHz{} on 14 November 2026 (Figure~\ref{fig:history}). The
+stages were measured with two receivers at four sites; a signal-generator calibration of both
+receivers (Section~\ref{sec:bench}) puts them in the same units.
+\item \textbf{Two snap-on ferrites on the USB cable gave the largest single step}: 10.4~dB in
+flight and about 17~dB on the ground with the motors off, between Ponui Day 2 and the following days.
+Same receiver, gain, island and aircraft; the only change was the ferrites
+(Section~\ref{sec:history}).
 \item \textbf{In flight, the noise is now only 3.3~dB above the receiver's own internal noise.}
-At Ponui it was 22~dB above. Further reductions on the aircraft can gain at most 3.3~dB, and part of
-that is likely the antenna hearing ordinary background noise from the surroundings
-(Section~\ref{sec:budget}).
+Further reductions on the aircraft can gain at most 3.3~dB, and part of that is likely the antenna
+hearing ordinary background noise from the surroundings (Section~\ref{sec:budget}).
 \item \textbf{The common-mode choke on the antenna coax and the 15~ft coax extension do most of the
 work in flight.} Without either, the in-flight noise was 10~dB above the receiver's own noise; with
 both, 3.3~dB (Table~\ref{tab:flights}).
@@ -57,7 +62,8 @@ better}: a $-90$~dBm tone raised the Mini's noise near it by 14~dB and left the 
 \centering\includegraphics[width=\linewidth]{figures/fig1_dumbbell.pdf}
 \caption{Noise at the receiver input, on the ground with the motors off (blue) and in steady flight
 (orange), for each configuration. Dashed lines: each receiver's own internal noise, measured on a
-50~$\Omega$ load. F2--F7 are the 14 November 2026 flights; P2 and P3 are Ponui flights from March 2025.}
+50~$\Omega$ load. F2--F7 are the 14 November 2026 flights; C1 and C2 the Cumbria flights of
+24 November 2025; P2 and P3 Ponui Day 8 flights; D2 the four Ponui Day 2 flights (medians).}
 \label{fig:dumbbell}
 \end{figure}
 
@@ -89,6 +95,7 @@ individually wrapped and grounded.
 \end{itemize}
 In between, in November 2025 in Cumbria, the Mini flew inside the shield with its antenna connector
 on a bonded bulkhead and the choke fitted, before the PM12S-4A and the aircraft ferrites.
+Section~\ref{sec:history} follows the noise through each of these stages.
 The full design, with the reasoning for each change, is in \texttt{hardware/emi-design.md} of the
 UAV-RT hub repository. None of the individual ferrites has yet been measured on its own.
 
@@ -115,7 +122,11 @@ the other, and the calibration in Section~\ref{sec:bench} converts both to dBm.
 \toprule
 Test & Date & Configuration & Receiver \\
 \midrule
-P2, P3 & 2025-03-22 & Ponui flights; old setup: Mini outside the shield on a USB extension with two snap-on ferrites, 15~ft coax, no choke, no aircraft ferrites & Mini, gain 20 \\
+W & 2025-03-15 & Wellington test flights; Mini outside the shield on a USB extension with no ferrites, 15~ft coax, no choke; pulse logs only; 160.40~MHz & Mini, gain 20 \\
+D2 & 2025-03-17 & Ponui Day 2, four flights; as W; 161.09~MHz & Mini, gain 20 \\
+Trip & 2025-03-18 to 23 & Ponui Days 3--8, 15 flights with detections; as D2 plus two snap-on ferrites on the USB extension; pulse logs & Mini, gain 20 \\
+P2, P3 & 2025-03-22 & Ponui Day 8 flights (UTC date); as Trip; IQ recordings & Mini, gain 20 \\
+C1, C2 & 2025-11-24 & Cumbria flights; Mini inside the shield on a bonded SMA bulkhead, choke + 15~ft coax, PHW150C, Castle BEC, no aircraft ferrites; 173.29 and 173.31~MHz & Mini, gain 21 \\
 F2, F3 & 2026-11-14 & Choke + 15~ft coax; climb to $\sim$170~ft, F2 with a 30~s hover & HF+ \\
 F5 & 2026-11-14 & No choke, 15~ft coax; 50~ft & HF+ \\
 F6 & 2026-11-14 & No choke, no coax extension; 50~ft & HF+ \\
@@ -124,8 +135,9 @@ VNA & 2026-11-17 & Insertion and return loss of the coax, choke and bench cable 
 Bench & 2026-11-18 & Signal generator into each receiver on the drone's Pi, motors off & Mini (gain 21), HF+ \\
 \bottomrule
 \end{tabularx}
-\caption{Tests in this report. All flights and bench runs were at 160.172~MHz, the frequency of the
-last Ponui flight. No tag was transmitting during the 2026 flights.}
+\caption{Tests in this report. The 2026 flights and bench runs were at 160.172~MHz, the frequency of
+the last Ponui flight; the 2025 field data at the frequencies shown. No tag was transmitting during
+the 2026 flights; the 2025 flights were tracking live tags, whose pulses the estimator removes.}
 \label{tab:tests}
 \end{table}
 
@@ -204,7 +216,23 @@ N_\text{flight} = N_\text{in,load} + \bigl(m_\text{flight} - m_\text{load}\bigr)
 This assumes the receiver ran at the same gain in flight as on the bench. That holds exactly for
 the HF+, whose settings are fixed. The Mini ran at gain 20 at Ponui and 21 on the bench (the setting
 TagTracker now uses and does not expose), so the Ponui values carry an uncertainty of the gain
-difference between those two settings, likely 1--2~dB.
+difference between those two settings, likely 1--2~dB. It cancels in comparisons between Ponui
+flights, which all ran at gain 20.
+
+\subsection{Noise from the detector's pulse logs}
+\label{sec:pulselogs}
+Most 2025 flights have no IQ recording, but every pulse the detector reported carries its own
+estimate of the channel noise, \texttt{noise\_psd}, in the same receiver units as the recording, and
+TagTracker logs it with the aircraft's position. It is a mean, where $\hat N$ is a median, so it reads
+1.59~dB higher. For the Mini:
+\begin{equation}
+N = 10\log_{10}(\texttt{noise\_psd}) - 59.81\ \text{dBm/Hz},
+\end{equation}
+where $-59.81 = -167.58 - (-109.36 + 1.59)$: the bench floor less the estimator's reading on the
+load, corrected to a mean. Checked against the IQ recordings of Ponui flights P2 and P3: above 10~m
+the pulse logs give $-145.7$ and $-145.5$\dBmHz, the recordings $-145.5$ and $-145.1$. Agreement
+within 0.4~dB. A flight gives one point per detected pulse, and only flights with detections count.
+Script: \texttt{tools/pulse\_log\_noise.py}.
 
 \subsection{Comparing Mini and HF+ readings directly}
 \label{sec:compare}
@@ -404,6 +432,86 @@ $+960$ and $+1270$~Hz from 160.172~MHz. Ponui's in-flight noise was flat across 
 \label{fig:spectra}
 \end{figure}
 
+\subsection{From Ponui to now}
+\label{sec:history}
+
+\begin{figure}[!htbp]
+\centering\includegraphics[width=0.95\linewidth]{figures/fig8_history.pdf}
+\caption{Noise at the receiver input at each stage, March 2025 to November 2026, in steady flight
+(orange) and on the ground with the motors off (blue). Dashed: the receiver's own noise (Mini for
+the first three stages, HF+ for the last). Stage values are medians over the flights listed in
+Table~\ref{tab:history}.}
+\label{fig:history}
+\end{figure}
+
+\begin{table}[!htbp]
+\centering\small
+\begin{tabularx}{\linewidth}{@{}l X c c c@{}}
+\toprule
+Stage & What changed & Ground, motors off & Steady flight & Step in flight \\
+\midrule
+1. Ponui Day 2, Mar 2025 & Mini on a USB extension outside the shield, no ferrites, no choke (D2) & $-145.2$ & $-135.0$ & --- \\
+2. Ponui Days 3--8, Mar 2025 & Two snap-on ferrites on the USB extension (Trip; ground from P2, P3) & $-162.0$ & $-145.4$ & $-10.4$ dB \\
+3. Cumbria, Nov 2025 & Mini inside the shield on a bonded SMA bulkhead; choke on the coax (C1, C2) & $-165.2$ & $-158.2$ & $-12.8$ dB \\
+4. Arizona, Nov 2026 & HF+ outside the shield via a bonded USB bulkhead; aircraft ferrites F1--F9; PM12S-4A regulator (F2, F3) & $-167.0$ & $-163.5$ & $-5.3$ dB \\
+\bottomrule
+\end{tabularx}
+\caption{The four stages, in dBm/Hz at the receiver input. Only stage 2 changed one thing at one
+site. Stages 3 and 4 also changed site and frequency, and stage 4 the receiver.}
+\label{tab:history}
+\end{table}
+
+\paragraph{The ferrites on the USB cable.} Ponui Day 2 (17 March 2025) flew four flights with no
+ferrites on the Mini's USB extension. On Tuesday 18 March it rained; tests in the cabin showed that
+ferrites on the USB cable helped, and every flight from then on carried two snap-on ferrites on it,
+one with two passes and one with three. Nothing else changed: the same Mini at gain 20, the same
+island, the same aircraft.
+\begin{itemize}
+\item \textbf{In flight the noise fell 10.4~dB}, from $-135.0$ to $-145.4$\dBmHz{}. All four Day 2
+flights sit within 0.4~dB of $-135$; all fifteen later flights with detections between $-144$ and
+$-148$ (Figure~\ref{fig:ponui}A). The two Wellington test flights before the trip, also without
+ferrites, read about $-137$.
+\item \textbf{With the motors off it fell about 17~dB}, from $-143$ to $-149$\dBmHz{} on Day 2 to
+about $-162$ on Day 8. Without the ferrites the aircraft was as loud standing still as it later was
+in flight. That noise came from the Pi and avionics, along the USB cable, through the Mini and down
+the outside of the coax to the antenna.
+\item \textbf{In power, this one step removed 91\% of the outside noise} reaching the receiver.
+Each later stage removed a similar or larger share of what was left (95\% and then 82\%), but of a
+much smaller amount; in decibels, which set the detection range, each counted in full.
+\end{itemize}
+
+\begin{figure}[!htbp]
+\centering\includegraphics[width=\linewidth]{figures/fig9_ponui_ferrites.pdf}
+\caption{Ponui, March 2025. (A) In-flight noise of every flight with data: Wellington test flights
+and the Ponui Days 3--8 flights from the pulse logs (Section~\ref{sec:pulselogs}), Ponui Day 2 from
+the IQ recordings. Open circles: fewer than eight pulses above 10~m. (B) One flight without and one
+with the USB-cable ferrites.}
+\label{fig:ponui}
+\end{figure}
+
+\paragraph{Cumbria: the noise follows the motors, not the height.} In November 2025 the Mini flew
+inside the shield, its antenna connector on a bulkhead bonded to the shield and the choke fitted, but
+before the regulator change and the aircraft ferrites. In steady flight the noise was $-158.7$ and
+$-157.7$\dBmHz{}, 9--10~dB above the Mini's own noise. In flight 2 (Figure~\ref{fig:cumbria}) the
+noise jumped as soon as the motors spun up, with the drone still on the ground; it stayed within a
+few dB from there to 95~m; it was highest, $-154.4$, after landing with the motors still running and
+the antenna lying on the ground; and it fell to the receiver's own level within seconds of the motors
+stopping, with a tag still transmitting nearby. The noise came from the drone running, not from the
+antenna leaving the ground. Step 3 cannot be split between moving the Mini inside the shield, the
+choke, the site and the higher frequency.
+
+\begin{figure}[!htbp]
+\centering\includegraphics[width=\linewidth]{figures/fig10_cumbria.pdf}
+\caption{Cumbria flight 2, 24 November 2025, 173.3~MHz: noise (mean of the two tag channels) and
+height from the logged pulses.}
+\label{fig:cumbria}
+\end{figure}
+
+\paragraph{Stage 4.} From Cumbria to November 2026 the receiver changed to the HF+ outside the shield
+on a bonded USB bulkhead, the aircraft ferrites F1--F9 and the PM12S-4A regulator went in, and the
+site and frequency changed. Together these took the in-flight noise from 9.4 to 3.3~dB above the
+receiver's own. The planned same-day Mini/HF+ flights will separate the receiver's share.
+
 \subsection{How much of what remains is the drone}
 \label{sec:budget}
 
@@ -429,12 +537,20 @@ antenna working and the drone off, and will separate the two. \draftnote{Update 
 done.}
 
 At Ponui the inferred outside noise was about 30~dB above $kT_0$, far above any background level for
-a quiet island. That noise was the drone.
+a quiet island. That noise was the drone: on Day 2 it was there with the motors off, and two
+ferrites on the USB cable removed most of it (Section~\ref{sec:history}).
 
 \section{Caveats}
 \begin{itemize}
-\item \textbf{Different sites.} Ponui (rural New Zealand) and the 14 November site (semi-rural
-Arizona) have different background noise. The 18~dB improvement includes that difference.
+\item \textbf{Different sites and frequencies.} Ponui (rural New Zealand, 160--161~MHz), Cumbria
+(rural England, 173~MHz) and the 14 November site (semi-rural Arizona, 160~MHz) have different
+background noise. Stages 3 and 4 of Table~\ref{tab:history} include those differences; stage 2 does
+not.
+\item \textbf{Cumbria's frequency.} The calibration was at 160~MHz; the Mini's gain at 173~MHz may
+differ slightly, and Cumbria ran at gain 21 where Ponui ran at 20.
+\item \textbf{Pulse-log values.} Stage 2's in-flight value comes from the detector's own noise
+estimate, checked against the IQ recordings within 0.4~dB, but only for flights and moments with
+detections.
 \item \textbf{Mini gain.} Ponui ran the Mini at gain 20; the calibration used 21. Likely 1--2~dB on
 the Ponui values.
 \item \textbf{Flight stages without telemetry.} Ground, takeoff, steady flight and landing were read
@@ -464,15 +580,21 @@ throttle.
 
 \appendix
 \section{Data and scripts}
+{\raggedright
 \begin{itemize}
 \item Raw recordings and notes, in OneDrive \texttt{FLIGHT\_TESTING\_DATA/}:
-  \texttt{2025-03-23-Ponui-Day8-Sun}; \texttt{2026-11-14-Rail-X\_Ranch\_Road};
+  \texttt{2025-03-16-Ponui-Day1-Sun}; \texttt{2025-03-17-Ponui-Day2-Mon};
+  \texttt{2025-03-23-Ponui-Day8-Sun} (its \texttt{HERELINK\_LOGS} hold the pulse logs of the whole
+  trip); \texttt{2025-11-24-Cumbria-Day8-Mon}; \texttt{2026-11-14-Rail-X\_Ranch\_Road};
   \texttt{2026-11-18-Office\_HF\_v\_Mini\_Testing}.
 \item Per-test notes, VNA files and derived data: \texttt{hardware/noise-reduction/} in the UAV-RT hub
 repository.
 \item Scripts: \texttt{tools/noise\_floor.py}, \texttt{tools/bench\_calibration.py},
-\texttt{tools/noise\_report\_data.py} (rebuilds all derived data), and
-\texttt{hardware/noise-reduction/report/make\_figures.py}.
+\texttt{tools/pulse\_log\_noise.py}, \texttt{tools/raw\_capture\_floor.py},
+\texttt{tools/noise\_report\_data.py} (rebuilds the 2026 and Day 8 derived data), and, in
+\texttt{hardware/noise-reduction/report/}, \texttt{make\_history\_data.py} (the 2025 field data, from
+the files under \texttt{tests/}) and \texttt{make\_figures.py}.
 \end{itemize}
+}
 
 \end{document}

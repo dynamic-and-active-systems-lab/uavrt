@@ -18,19 +18,24 @@ def save(fig,name): fig.savefig(f"{OUT}/{name}.pdf"); fig.savefig(f"{OUT}/{name}
 def floorline(ax,y,txt,x=1.0,ha="right"):
     ax.axhline(y,color=NEUT,lw=1,ls=(0,(4,3))); ax.text(x,y-0.5,txt,transform=ax.get_yaxis_transform(),ha=ha,va="top",fontsize=7.5,color=INK2)
 
-# --- Fig 1: dumbbell, ground vs in flight (dBm/Hz)
-rows=[("P2","Ponui 2025, old setup (Mini)"),("P3","Ponui 2025, old setup (Mini)"),("F6","No choke, no extension"),("F5","No choke, 15 ft coax"),("F7","Choke, no extension"),("F3","Choke + 15 ft coax"),("F2","Choke + 15 ft coax")]
-fig,ax=plt.subplots(figsize=(6.6,3.3))
+# --- Fig 1: dumbbell, ground vs in flight (dBm/Hz), every configuration with both stages
+HS={r["id"]:r for r in rd("history_summary.csv")}
+def gs(fid):
+    r=S.get(fid) or HS[fid]; return float(r["ground_dBm_per_Hz"]), float(r["steady_dBm_per_Hz"])
+rows=[("D2","Ponui Day 2, no USB ferrites (Mini)"),("P2","Ponui Day 8, USB ferrites (Mini)"),("P3","Ponui Day 8, USB ferrites (Mini)"),
+      ("C1","Cumbria, Mini in shield + choke"),("C2","Cumbria, Mini in shield + choke"),
+      ("F6","No choke, no extension"),("F5","No choke, 15 ft coax"),("F7","Choke, no extension"),("F3","Choke + 15 ft coax"),("F2","Choke + 15 ft coax")]
+fig,ax=plt.subplots(figsize=(6.6,4.1))
 for i,(fid,lab) in enumerate(rows):
-    g=float(S[fid]["ground_dBm_per_Hz"]); s=float(S[fid]["steady_dBm_per_Hz"])
-    ax.plot([g,s],[i,i],color=GRID,lw=3,zorder=1,solid_capstyle="round")
+    g,s_=gs(fid)
+    ax.plot([g,s_],[i,i],color=GRID,lw=3,zorder=1,solid_capstyle="round")
     ax.scatter([g],[i],s=46,color=C["blue"],zorder=3,edgecolor="white",linewidth=1.2,label="On the ground, motors off" if i==0 else None)
-    ax.scatter([s],[i],s=46,color=C["orange"],zorder=3,edgecolor="white",linewidth=1.2,label="In steady flight" if i==0 else None)
+    ax.scatter([s_],[i],s=46,color=C["orange"],zorder=3,edgecolor="white",linewidth=1.2,label="In steady flight" if i==0 else None)
 ax.set_yticks(range(len(rows))); ax.set_yticklabels([f"{lab}  [{fid}]" for fid,lab in rows],fontsize=8)
-for x,t in ((NH,"HF+ own noise"),(NM,"Mini own noise")):
-    ax.axvline(x,color=NEUT,lw=1,ls=(0,(4,3)))
-ax.text(NH+0.3,len(rows)-0.45,"HF+ own noise\n−166.8",fontsize=7,color=INK2,va="top"); ax.text(NM-0.3,len(rows)-0.45,"Mini own noise\n−167.6",fontsize=7,color=INK2,va="top",ha="right")
-ax.set_xlabel("Noise at the receiver input (dBm/Hz)"); ax.grid(axis="y",visible=False); ax.set_xlim(-170,-142)
+for y in (0.5,2.5,4.5): ax.axhline(y,color=GRID,lw=0.8)
+for x in (NH,NM): ax.axvline(x,color=NEUT,lw=1,ls=(0,(4,3)))
+ax.text(NH+0.3,-0.75,"HF+ own noise −166.8",fontsize=7,color=INK2,va="center"); ax.text(NM-0.3,-0.75,"Mini own\nnoise −167.6",fontsize=7,color=INK2,va="center",ha="right")
+ax.set_xlabel("Noise at the receiver input (dBm/Hz)"); ax.grid(axis="y",visible=False); ax.set_xlim(-170,-132); ax.set_ylim(-1.2,len(rows)-0.5)
 ax.legend(loc="lower left",bbox_to_anchor=(0,1.0),ncol=2,fontsize=8,handletextpad=0.3)
 save(fig,"fig1_dumbbell")
 
@@ -104,4 +109,59 @@ ax.axvline(cal["nf_hf_db"],ymin=0.42,color=C["orange"],lw=1,ls=(0,(2,2))); ax.te
 ax.set_yticks([0,1,2]); ax.set_yticklabels(["ITU-R P.372\nmedians, 160 MHz","Measured","Measured"],fontsize=7.5); ax.set_ylim(-0.8,2.9)
 ax.set_xlabel("Outside noise at the antenna, dB above thermal (kT₀)"); ax.grid(axis="y",visible=False); ax.set_xlim(-12,44)
 save(fig,"fig7_budget")
+# --- Fig 8: the four in-flight stages, March 2025 to November 2026
+ST=rd("history_steps.csv")
+fig,ax=plt.subplots(figsize=(6.6,3.9))
+xs=np.arange(len(ST)); fl=[float(r["steady_dBm_per_Hz"]) for r in ST]; gr=[float(r["ground_dBm_per_Hz"]) for r in ST]; own=[float(r["own_dBm_per_Hz"]) for r in ST]
+for i in xs:
+    ax.plot([i,i],[gr[i],fl[i]],color=GRID,lw=3,zorder=1,solid_capstyle="round")
+    ax.plot([i-0.22,i+0.22],[own[i]]*2,color=NEUT,lw=1.2,ls=(0,(3,2)))
+ax.scatter(xs,gr,s=46,color=C["blue"],zorder=3,edgecolor="white",linewidth=1.2,label="On the ground, motors off")
+ax.scatter(xs,fl,s=56,color=C["orange"],zorder=3,edgecolor="white",linewidth=1.2,label="In steady flight")
+ax.plot(xs,fl,color=C["orange"],lw=1,alpha=0.5,zorder=2)
+for i,(fa0,fb0) in enumerate(zip(fl[:-1],fl[1:])):
+    ax.annotate(f"{fb0-fa0:+.1f} dB".replace("-","−"),((i+i+1)/2,(fa0+fb0)/2),xytext=(6,6),textcoords="offset points",ha="left",fontsize=8,color=INK,fontweight="bold")
+for i,v in enumerate(fl): ax.text(i-0.1,v,f"{v:.1f}".replace("-","−"),fontsize=7.5,color=INK2,va="center",ha="right")
+ax.text(3.27,own[3]-0.6,"receiver's\nown noise",fontsize=7,color=INK2,va="top",ha="left")
+labs=["Ponui Day 2\nMar 2025\nMini on USB ext.,\nno ferrites, no choke","Ponui Days 3–8\nMar 2025\n+ 2 snap-on ferrites\non the USB ext.","Cumbria\nNov 2025\nMini inside shield,\nbonded SMA, choke","Arizona\nNov 2026\nHF+, bonded USB,\nF1–F9, PM12S-4A"]
+ax.set_xticks(xs,labs,fontsize=7.3); ax.set_xlim(-0.5,3.75); ax.set_ylim(-170,-130); ax.grid(axis="x",visible=False)
+ax.set_ylabel("Noise at the receiver input (dBm/Hz)")
+ax.text(0.98,0.97,f"In flight: {fl[-1]-fl[0]:+.1f} dB overall".replace("-","−"),transform=ax.transAxes,ha="right",va="top",fontsize=9,color=INK,fontweight="bold")
+ax.legend(loc="upper right",bbox_to_anchor=(0.98,0.9),fontsize=7.5)
+save(fig,"fig8_history")
+
+# --- Fig 9: Ponui trip, per-flight in-flight noise and two flights from the IQ recordings
+TF=rd("trip_flights.csv"); HT=collections.defaultdict(list); ALT=collections.defaultdict(list)
+for r in rd("history_timelines.csv"): HT[r["flight"]].append(float(r["floor_dBm_per_Hz"])); ALT[r["flight"]].append(float(r["alt_m"]) if r["alt_m"] else np.nan)
+fig,axs=plt.subplots(2,1,figsize=(6.6,6.6),gridspec_kw=dict(height_ratios=[1.1,1],hspace=0.62))
+ax=axs[0]; xl=[]
+for i,r in enumerate(TF):
+    col=C["orange"] if r["site"]=="Wellington" else (C["red"] if r["usb_ferrites"]=="no" else C["blue"]); m=float(r["median"]); n=int(r["n"])
+    ax.errorbar(i,m,yerr=[[m-float(r["p10"])],[float(r["p90"])-m]],fmt="o",color=col,ms=4.5,lw=1,mfc=col if n>=8 else "white")
+    w=r["when_nzdt"]; xl.append(w[5:].replace("2025-","") if "flight" not in w else "03-17 f"+w[-1])
+ax.set_xticks(range(len(TF)),xl,fontsize=6.3,rotation=60,ha="right",rotation_mode="anchor")
+k=max(i for i,r in enumerate(TF) if r["usb_ferrites"]=="no")+0.5
+ax.axvline(k,color=INK2,lw=0.9); ax.text(k+0.15,-160,"Tue 18, rain: cabin tests\nshow the USB ferrites help;\nfitted from here on",fontsize=6.8,color=INK2,va="center")
+floorline(ax,NM,"Mini's own noise"); ax.set_ylim(-170,-128); ax.set_ylabel("dBm/Hz")
+ax.text(0,-130.5,"Orange: Wellington test flights (pulse logs). Red: Ponui Day 2 (IQ). Blue: Ponui Days 3–8 (pulse logs).",fontsize=6.8,color=INK2)
+ax.set_title("A. In-flight noise per flight, March 2025 (median, 10–90 % bar; NZDT)",loc="left")
+ax=axs[1]
+ax.plot(HT["D2"],color=C["red"],lw=1.2,label="Ponui Day 2, flight 4: no USB ferrites")
+ax.plot(TL["P3"],color=C["blue"],lw=1.2,label="Ponui Day 8, flight P3: with them")
+floorline(ax,NM,"Mini's own noise"); ax.set_ylim(-170,-128); ax.set_xlim(0,len(TL["P3"]))
+ax.text(40,-152,"on the ground, motors off: −143 (Day 2), −162 (Day 8)",fontsize=7,color=INK2)
+ax.set_xlabel("Seconds from Start Detection"); ax.set_ylabel("dBm/Hz"); ax.legend(loc="upper right",fontsize=7.5)
+ax.set_title("B. One flight from each, IQ recordings",loc="left")
+save(fig,"fig9_ponui_ferrites")
+
+# --- Fig 10: Cumbria flight 2, noise and height
+fig,ax=plt.subplots(figsize=(6.6,2.9)); v=np.array(HT["C2"]); a=np.array(ALT["C2"]); t=np.arange(len(v))
+ax2=ax.twinx(); ax2.fill_between(t,0,np.nan_to_num(a),color=GRID,alpha=0.9,lw=0,zorder=0); ax2.set_ylim(0,400); ax2.set_ylabel("Height (m)",color=NEUT); ax2.spines["right"].set_visible(True); ax2.tick_params(colors=NEUT); ax2.grid(False)
+ax.set_zorder(ax2.get_zorder()+1); ax.patch.set_visible(False)
+ax.plot(t,v,color=C["blue"],lw=1.1); floorline(ax,NM,"Mini's own noise",x=0.02,ha="left"); ax2.text(300,105,"height",fontsize=7,color=NEUT,ha="center")
+for x,y,txt,ha in ((28,-152.5,"motors start, still on the ground","left"),(612,-146.5,"landed, motors on","right"),(622,-165.5,"motors off","right")):
+    ax.text(x,y,txt,fontsize=7,color=INK2,ha=ha)
+ax.set_ylim(-170,-140); ax.set_xlim(0,len(v)); ax.set_xlabel("Seconds from Start Detection"); ax.set_ylabel("dBm/Hz")
+save(fig,"fig10_cumbria")
+
 print(json.dumps({"external_now":b["now"],"external_ponui":b["ponui"],"fam":fam},default=float,indent=0))

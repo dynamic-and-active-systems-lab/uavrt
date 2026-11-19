@@ -3,10 +3,11 @@
 The record of how the noise reaching the tracking drone's receiver was measured and reduced, from
 the Ponui fieldwork in March 2025 to now. Started 2026-11-19.
 
-**Where it stands (draft 0.1, 2026-11-19):** in steady flight the noise at the receiver input fell
-from about −145 dBm/Hz at Ponui to −163.5 dBm/Hz on 2026-11-14, about 18 dB. It now sits 3.3 dB above
-the receiver's own internal noise, against 22 dB at Ponui. Details, methods and caveats are in the
-report.
+**Where it stands (draft 0.2, 2026-11-19):** in steady flight the noise at the receiver input fell
+from −135.0 dBm/Hz on Ponui Day 2 (March 2025) to −163.5 dBm/Hz on 2026-11-14, 28.5 dB in four
+stages. The largest single step, and the only one-change comparison, was two snap-on ferrites on the
+Mini's USB cable: −10.4 dB in flight. The noise now sits 3.3 dB above the receiver's own internal
+noise, against 32.6 dB at the start of Ponui. Details, methods and caveats are in the report.
 
 ## Contents
 
@@ -24,8 +25,8 @@ Tests so far:
 | `tests/2026-11-14-flights-rail-x-ranch/` | Seven flights, five with radio data: choke and coax-extension configurations, no tag out. |
 | `tests/2026-11-17-vna-cables/` | NanoVNA loss and match of the 15 ft RG-316, the choke, and the bench cable. Includes the S2P files. |
 | `tests/2026-11-18-bench-mini-vs-hf/` | Signal-generator calibration of the Airspy Mini and HF+: noise figure, units, strong-signal behaviour. |
-| `tests/2025-11-24-cumbria-mini-choke/` | Cumbria fieldwork, last two flights: Mini inside the shield with the choke. Not yet in the report. |
-| `tests/2025-03-ponui-usb-ferrites/` | Ponui Day 2 (no USB ferrites) against the later Ponui flights (with them): −10.5 dB in flight, −17 to −20 dB motors off. Also every flight of the trip from the pulse logs, and the cabin captures. Not yet in the report. |
+| `tests/2025-11-24-cumbria-mini-choke/` | Cumbria fieldwork, last two flights: Mini inside the shield with the choke. |
+| `tests/2025-03-ponui-usb-ferrites/` | Ponui Day 2 (no USB ferrites) against the later Ponui flights (with them): −10.5 dB in flight, −17 to −20 dB motors off. Also every flight of the trip from the pulse logs, and the cabin captures. |
 
 The Ponui reference flights in the report (2025-03-22 UTC) are read directly from their recordings.
 

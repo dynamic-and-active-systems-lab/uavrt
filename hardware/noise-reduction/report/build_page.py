@@ -25,7 +25,11 @@ vna, vf = collections.defaultdict(lambda: {"il": [], "rl": []}), []
 for r in rd("vna.csv"):
     vna[r["component"]]["il"].append(round(-float(r["s21_db"]), 3)); vna[r["component"]]["rl"].append(round(-float(r["s11_db"]), 2))
     if r["component"] == "thru": vf.append(int(r["freq_hz"]) / 1e6)
-data = {"timelines": tl, "spectra": sp, "spectra_f": spf, "summary": summ, "bench": bs, "bench_f": bsf, "vna": vna, "vna_f": vf,
+for r in rd("history_summary.csv"):
+    summ[r["id"]] = dict(r, flight=r["id"])
+for r in rd("history_timelines.csv"): tl[r["flight"]].append(round(float(r["floor_dBm_per_Hz"]), 1))
+hist = {"steps": rd("history_steps.csv"), "trip": rd("trip_flights.csv")}
+data = {"history": hist, "timelines": tl, "spectra": sp, "spectra_f": spf, "summary": summ, "bench": bs, "bench_f": bsf, "vna": vna, "vna_f": vf,
         "cal": {k: v for k, v in cal.items() if k != "runs"}, "budget": json.load(open(os.path.join(H, "figures", "noise_budget.json")))}
 s = json.dumps(data, separators=(",", ":")); assert "</script" not in s
 page = open(os.path.join(H, "page_template.html"), encoding="utf-8").read().replace("__DATA__", s).replace("__SCRIPT__", open(os.path.join(H, "page_script.js"), encoding="utf-8").read())

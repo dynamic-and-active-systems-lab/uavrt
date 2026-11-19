@@ -98,28 +98,51 @@ code{font-family:var(--f-mono);font-size:.9em}
 
 <div class="wrap">
 <header class="stack">
-  <span class="eyebrow">UAV-RT tracking drone · test report · draft 0.1 · 19 Nov 2026</span>
+  <span class="eyebrow">UAV-RT tracking drone · test report · draft 0.2 · 19 Nov 2026</span>
   <h1>How much quieter the drone got</h1>
-  <p class="meta">Michael W. Shafer, Northern Arizona University. Analysis and drafting assisted by Claude. All measurements at 160.172 MHz.</p>
-  <p class="draft">Draft. Covers the tests up to 18 November 2026. A same-day Airspy Mini vs HF+ flight comparison and a background-noise reference with the antenna on a mast are still to come, and may change the numbers marked as estimates.</p>
+  <p class="meta">Michael W. Shafer, Northern Arizona University. Analysis and drafting assisted by Claude. 2026 tests at 160.172 MHz; field data from 2025 at 160–173 MHz.</p>
+  <p class="draft">Draft. Covers the tests up to 18 November 2026, and the field data from Ponui Island (March 2025) and Cumbria (November 2025) that show how the noise came down. A same-day Airspy Mini vs HF+ flight comparison and a background-noise reference with the antenna on a mast are still to come, and may change the numbers marked as estimates.</p>
 </header>
 
 <div class="tiles" aria-label="Key results">
-  <div class="tile"><span class="eyebrow">In-flight noise, Ponui → now</span><span class="big num">−18<small> dB</small></span><p>About −145 dBm/Hz at Ponui in March 2025; −163.5 dBm/Hz on 14 November 2026.</p></div>
-  <div class="tile"><span class="eyebrow">Above the receiver's own noise</span><span class="big num">+3.3<small> dB</small></span><p>In flight now, with the choke and 15 ft coax. It was +22 dB at Ponui.</p></div>
+  <div class="tile"><span class="eyebrow">In-flight noise, Ponui → now</span><span class="big num">−28.5<small> dB</small></span><p>−135.0 dBm/Hz on Ponui Day 2, March 2025; −163.5 dBm/Hz on 14 November 2026.</p></div>
+  <div class="tile"><span class="eyebrow">Two ferrites on the USB cable</span><span class="big num">−10.4<small> dB</small></span><p>The largest single step, and the only one with one change at one site: Ponui Day 2 against Days 3–8.</p></div>
+  <div class="tile"><span class="eyebrow">Above the receiver's own noise</span><span class="big num">+3.3<small> dB</small></span><p>In flight now, with the choke and 15 ft coax. It was +32.6 dB on Ponui Day 2.</p></div>
   <div class="tile"><span class="eyebrow">Noise figure, as installed</span><span class="big num">7.2 <small>/</small> 6.3<small> dB</small></span><p>Airspy HF+ / Airspy Mini. Nearly equal; the HF+ handles strong signals far better.</p></div>
 </div>
 
+<section id="history">
+  <h2>From Ponui to now, in four stages</h2>
+  <p class="lede">The noise reaching the receiver in steady flight and on the ground with the motors off, at each stage of the work. Only the step from stage 1 to 2 changed one thing at one site; the later steps also changed the site, the frequency and, at the end, the receiver.</p>
+  <figure class="figure"><div class="chart" id="hist-chart"></div>
+    <figcaption>Hover a point for its value and what changed. Dashed: the receiver's own noise (Airspy Mini for stages 1–3, HF+ for stage 4).</figcaption></figure>
+  <div class="tablewrap"><table style="min-width:680px">
+    <thead><tr><th>Stage</th><th>What changed</th><th class="n">Ground, motors off</th><th class="n">Steady flight</th><th class="n">Step in flight</th></tr></thead>
+    <tbody id="hist-table"></tbody></table></div>
+  <p style="font-size:13px;color:var(--ink2)">dBm/Hz at the receiver input. In power, the USB-cable ferrites removed 91 % of the outside noise; each later stage removed 95 % and then 82 % of what was left. In decibels, which set the detection range, every step counts in full.</p>
+</section>
+
+<section id="ferrites">
+  <h2>The ferrites on the USB cable</h2>
+  <p class="lede">Ponui Day 2, 17 March 2025: four flights with the Mini hanging outside the shield on a USB extension with no ferrites. On the 18th it rained, cabin tests showed ferrites on the USB cable helped, and every later flight carried two snap-on ferrites on it. Same Mini at gain 20, same island, same aircraft. In flight the noise fell 10.4 dB; with the motors off it fell about 17 dB.</p>
+  <figure class="figure"><div class="chart" id="trip-chart"></div>
+    <figcaption>In-flight noise of every flight of the trip with data: median and 10–90 % range. Wellington test flights and Ponui Days 3–8 from the detector's noise estimate in the pulse logs (within 0.4 dB of the IQ recordings); Ponui Day 2 from the IQ recordings. Open circles: fewer than eight pulses above 10 m.</figcaption></figure>
+  <ul style="max-width:76ch">
+    <li><b>Without the ferrites the drone was loud even standing still:</b> −143 to −149 dBm/Hz on the ground with the motors off, as loud as the later flights were in the air. That noise came from the Pi and avionics along the USB cable, through the Mini and down the outside of the coax.</li>
+    <li><b>Cumbria, November 2025</b> (Mini inside the shield, bonded antenna bulkhead, choke): −158 dBm/Hz in flight. The noise rose as the motors spun up on the ground, stayed level from a few metres to 95 m, peaked after landing with the motors still running, and dropped to the receiver's own level when they stopped. The noise follows the motors, not the antenna's height. Choose D2, C1 or C2 in the flight timelines below to see these flights.</li>
+  </ul>
+</section>
+
 <section id="overview">
   <h2>Ground and flight, every configuration</h2>
-  <p class="lede">Each row shows the noise reaching the receiver with the drone on the ground and motors off, and in steady flight. The dashed lines are each receiver's own internal noise, measured with a 50 Ω load in place of the antenna. Anything right of them came from outside the receiver.</p>
+  <p class="lede">Each row shows the noise reaching the receiver with the drone on the ground and motors off, and in steady flight, for every configuration with both stages recorded. The dashed lines are each receiver's own internal noise, measured with a 50 Ω load in place of the antenna. Anything right of them came from outside the receiver.</p>
   <figure class="figure"><div class="chart" id="dumbbell"></div>
-    <figcaption>Hover a point for its value. F2–F7: 14 November 2026, Airspy HF+. P2, P3: Ponui, March 2025, Airspy Mini, old setup: Mini outside the shield on a USB extension with two snap-on ferrites, no choke, no aircraft ferrites.</figcaption></figure>
+    <figcaption>Hover a point for its value. F2–F7: 14 November 2026, Airspy HF+. C1, C2: Cumbria, November 2025, Mini inside the shield with the choke. P2, P3: Ponui Day 8, Mini on a USB extension with two snap-on ferrites. D2: Ponui Day 2, the same without the ferrites (median of four flights).</figcaption></figure>
 </section>
 
 <section id="timelines">
   <h2>Noise over each flight</h2>
-  <p class="lede">The noise floor second by second, already converted to dBm/Hz at the receiver input so the old and new receivers share one scale. Choose which flights to show.</p>
+  <p class="lede">The noise floor second by second, already converted to dBm/Hz at the receiver input so the old and new receivers share one scale. Choose which flights to show. D2 is Ponui Day 2 flight 4; C1 and C2 are the Cumbria flights at 173 MHz.</p>
   <div class="controls" id="tl-chips" role="group" aria-label="Flights shown"></div>
   <figure class="figure"><div class="chart" id="tl-chart"></div>
     <figcaption>The jump near the start of each 2026 flight is takeoff; excursions near the end are probably landing. No telemetry was recorded for these flights yet, so flight stages are read from the noise. Ponui flights were much longer.</figcaption></figure>
@@ -200,6 +223,10 @@ code{font-family:var(--f-mono);font-size:.9em}
     <div class="eq">P<sub>m</sub>(f<sub>k</sub>) = |Σ<sub>n</sub> w[n] x<sub>m</sub>[n] e<sup>−j2πkn/N</sup>|² / (f<sub>s</sub> Σ<sub>n</sub> w[n]²)</div>
     <div class="eq">N̂ = median over the inner 80 % of bins of [ median over blocks of P<sub>m</sub>(f<sub>k</sub>) ]</div>
     <p>The median over blocks removes tag pulses (20 ms in every 1.33 s). It reads about 1.6 dB under the mean, a bias that cancels because the calibration uses the same estimator. Script: <code>tools/noise_floor.py</code>.</p></div></details>
+  <details><summary>Noise from the detector's pulse logs</summary><div class="stack">
+    <p>Most 2025 flights have no IQ recording, but every pulse the detector reports carries its own noise estimate for the channel, <code>noise_psd</code>, in the recording's units, logged by TagTracker with the aircraft's position. It is a mean, so it reads 1.59 dB above the median-based estimator. For the Mini:</p>
+    <div class="eq">N = 10 log₁₀(noise_psd) − 59.81 dBm/Hz &nbsp;&nbsp;&nbsp; −59.81 = −167.58 − (−109.36 + 1.59)</div>
+    <p>Checked against the IQ recordings of Ponui flights P2 and P3: −145.7 and −145.5 from the pulse logs against −145.5 and −145.1, within 0.4 dB. Only flights and moments with detections count. Script: <code>tools/pulse_log_noise.py</code>.</p></div></details>
   <details><summary>Calibration and noise figure</summary><div class="stack">
     <p>Tone power is the spectrum above the local noise, summed over the tone's bins; the gain from dBm at the input to receiver units follows from the generator setting and the 0.6 dB path loss:</p>
     <div class="eq">S = Σ<sub>k∈tone</sub> (P̄(f<sub>k</sub>) − N<sub>local</sub>) Δf &nbsp;&nbsp;&nbsp; G = 10 log₁₀ S − (P<sub>gen</sub> − L<sub>path</sub>)</div>
@@ -224,7 +251,8 @@ code{font-family:var(--f-mono);font-size:.9em}
   <h2>Caveats and next tests</h2>
   <div class="two">
     <div class="figure"><h3>Known limits</h3><ul style="font-size:14px">
-      <li>Different sites: rural New Zealand and semi-rural Arizona have different background noise.</li>
+      <li>Different sites and frequencies: Ponui (160–161 MHz), Cumbria (173 MHz) and Arizona (160 MHz) differ in background noise. Stages 3 and 4 include that; the USB-ferrite step does not.</li>
+      <li>Cumbria ran at 173 MHz and Mini gain 21; the calibration was at 160 MHz.</li>
       <li>Ponui ran the Mini at gain 20; the calibration used 21. Likely 1–2 dB on the Ponui values.</li>
       <li>No telemetry for the 2026 flights; heights also differed between configurations.</li>
       <li>On the ground the antenna lies on the soil and hears little outside noise, so "ground" is not quite "everything except the motors".</li>
@@ -238,7 +266,7 @@ code{font-family:var(--f-mono);font-size:.9em}
 </section>
 
 <footer class="stack">
-  <p>Raw recordings: OneDrive <code>FLIGHT_TESTING_DATA</code> (2025-03-23-Ponui-Day8-Sun, 2026-11-14-Rail-X_Ranch_Road, 2026-11-18-Office_HF_v_Mini_Testing). Derived data, per-test notes and the PDF version of this report: <code>hardware/noise-reduction/</code> in the UAV-RT hub repository. Rebuild the data with <code>tools/noise_report_data.py</code>.</p>
+  <p>Raw recordings: OneDrive <code>FLIGHT_TESTING_DATA</code> (2025-03-16-Ponui-Day1-Sun, 2025-03-17-Ponui-Day2-Mon, 2025-03-23-Ponui-Day8-Sun, 2025-11-24-Cumbria-Day8-Mon, 2026-11-14-Rail-X_Ranch_Road, 2026-11-18-Office_HF_v_Mini_Testing). Derived data, per-test notes and the PDF version of this report: <code>hardware/noise-reduction/</code> in the UAV-RT hub repository. Rebuild the data with <code>tools/noise_report_data.py</code> and <code>report/make_history_data.py</code>.</p>
 </footer>
 </div>
 
