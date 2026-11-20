@@ -1,6 +1,6 @@
 # Noise-reduction report
 
-Draft 0.2, 2026-11-19 (0.2 adds the 2025 field data: Ponui Days 2–8 and Cumbria). Two versions of the same report:
+Draft 0.3, 2026-11-20 (0.2 added the 2025 field data, Ponui Days 2–8 and Cumbria; 0.3 adds the PX4 flight logs). Two versions of the same report:
 
 | File | What it is |
 |---|---|
@@ -16,5 +16,6 @@ Draft 0.2, 2026-11-19 (0.2 adds the 2025 field data: Ponui Days 2–8 and Cumbri
 2. Extend `tools/noise_report_data.py` if the test is a new kind, then run it:
    `python3 tools/noise_report_data.py <folder holding the FLIGHT_TESTING_DATA test folders> <hub>`.
 3. `python3 make_history_data.py` rebuilds the 2025 field data (`history_*.csv`, `trip_flights.csv`) from the files under `../tests/`.
+   `python3 make_px4_data.py` aligns the PX4 extracts (`../tests/*/px4_per_second.csv`) to the recordings.
    Then `python3 make_figures.py ../data figures`, then `latexmk -pdf noise_report.tex`.
 4. `python3 build_page.py` rebuilds both HTML files. It escapes every non-ASCII character, so the page reads correctly even where a browser guesses the wrong text encoding (Safari did, opening the file from disk). Republish the `.artifact.html` file to the same artifact.

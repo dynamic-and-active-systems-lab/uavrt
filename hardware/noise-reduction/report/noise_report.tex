@@ -14,7 +14,7 @@
 \newcommand{\draftnote}[1]{\textcolor{BrickRed}{\textit{[#1]}}}
 
 \title{Reducing receiver noise on the UAV-RT tracking drone\\[4pt]
-\large Test report --- draft 0.2}
+\large Test report --- draft 0.3}
 \author{Michael W.\ Shafer, Northern Arizona University\\
 \small Analysis and drafting assisted by Claude (Anthropic)}
 \date{19 November 2026}
@@ -127,10 +127,10 @@ D2 & 2025-03-17 & Ponui Day 2, four flights; as W; 161.09~MHz & Mini, gain 20 \\
 Trip & 2025-03-18 to 23 & Ponui Days 3--8, 15 flights with detections; as D2 plus two snap-on ferrites on the USB extension; pulse logs & Mini, gain 20 \\
 P2, P3 & 2025-03-22 & Ponui Day 8 flights (UTC date); as Trip; IQ recordings & Mini, gain 20 \\
 C1, C2 & 2025-11-24 & Cumbria flights; Mini inside the shield on a bonded SMA bulkhead, choke + 15~ft coax, PHW150C, Castle BEC, no aircraft ferrites; 173.29 and 173.31~MHz & Mini, gain 21 \\
-F2, F3 & 2026-11-14 & Choke + 15~ft coax; climb to $\sim$170~ft, F2 with a 30~s hover & HF+ \\
-F5 & 2026-11-14 & No choke, 15~ft coax; 50~ft & HF+ \\
-F6 & 2026-11-14 & No choke, no coax extension; 50~ft & HF+ \\
-F7 & 2026-11-14 & Choke, no coax extension; 50~ft & HF+ \\
+F2, F3 & 2026-11-14 & Choke + 15~ft coax; steady at 53 and 45~m (175 and 150~ft), F2 with a 30~s hover & HF+ \\
+F5 & 2026-11-14 & No choke, 15~ft coax; steady at 28~m (90~ft) & HF+ \\
+F6 & 2026-11-14 & No choke, no coax extension; steady at 19~m (60~ft) & HF+ \\
+F7 & 2026-11-14 & Choke, no coax extension; steady at 18~m (60~ft) & HF+ \\
 VNA & 2026-11-17 & Insertion and return loss of the coax, choke and bench cable & --- \\
 Bench & 2026-11-18 & Signal generator into each receiver on the drone's Pi, motors off & Mini (gain 21), HF+ \\
 \bottomrule
@@ -141,10 +141,9 @@ the 2026 flights; the 2025 flights were tracking live tags, whose pulses the est
 \label{tab:tests}
 \end{table}
 
-\noindent The flights on 14 November had no telemetry recorded for the radio flights, so the stages
-of each flight --- motors off on the ground, takeoff, steady flight, landing --- were read from the
-noise itself and from the flight notes. The PX4 flight logs from the flight controller will
-replace these estimates when added.
+\noindent Heights and the motor state of the 14 November flights and the two Cumbria flights come from
+the PX4 flight-controller logs (Section~\ref{sec:px4}). Heights are relative to the takeoff point.
+The flight notes give 50~ft for F5--F7; the logs show 18--28~m (60--90~ft).
 
 \section{Methods}
 \label{sec:methods}
@@ -233,6 +232,16 @@ load, corrected to a mean. Checked against the IQ recordings of Ponui flights P2
 the pulse logs give $-145.7$ and $-145.5$\dBmHz, the recordings $-145.5$ and $-145.1$. Agreement
 within 0.4~dB. A flight gives one point per detected pulse, and only flights with detections count.
 Script: \texttt{tools/pulse\_log\_noise.py}.
+
+\subsection{Aligning the PX4 logs}
+\label{sec:px4method}
+The PX4 logs (\texttt{.ulg}) were read with \texttt{pyulog} into one row per second: height
+(local position), mean motor command, TFMini range, and battery current. PX4 time is UTC from GPS. On
+14 November the Pi's clock was right and the recording starts at the Pi session time, so the alignment
+is exact to the second; on every flight the noise rose within 1--2~s of the motors spinning up, which
+confirms it. In Cumbria the Pi's clock was wrong, so the offset was taken as the one that best matched
+the PX4 height to the height logged with each detected pulse (median difference 0.03--0.04~m). Scripts:
+\texttt{report/make\_px4\_data.py}; the per-second extracts are in each test's folder.
 
 \subsection{Comparing Mini and HF+ readings directly}
 \label{sec:compare}
@@ -401,8 +410,8 @@ P3 & Ponui, old setup & $-162.5$ & $-145.1$ & +22.5 dB \\
 
 \begin{figure}[p]
 \centering\includegraphics[width=\linewidth]{figures/fig2_timelines.pdf}
-\caption{Noise floor second by second. The rise near the start of each 2026 flight is takeoff; the
-excursions near the end are probably landing (no telemetry yet). Note the different time scales:
+\caption{Noise floor second by second. The rise near the start of each 2026 flight is takeoff and the
+excursions near the end are the descent (Figure~\ref{fig:px4}). Note the different time scales:
 the Ponui flights were much longer.}
 \label{fig:timelines}
 \end{figure}
@@ -412,13 +421,14 @@ the Ponui flights were much longer.}
 \item \textbf{The choke matters most when the antenna is close to the drone.} Without the extension,
 adding the choke (F6 to F7) lowered the noise about 10~dB on the ground and 5~dB in flight. With the
 15~ft coax (F5 to F2/F3) it was worth about 1.7~dB in flight, though those flights also flew at
-different heights.
+different heights (28~m against 45--53~m).
 \item \textbf{The 15~ft coax matters most without the choke.} Without the choke, the extension
 (F6 to F5) bought about 10.7~dB on the ground and 5~dB in flight.
 \item \textbf{F6's noise is there before the motors turn.} With no choke and the antenna close,
 the noise was 11.6~dB above the receiver's own on the ground and did not rise in flight. The
 drone's electronics, not its motors, set it.
-\item \textbf{Takeoff and landing add short bursts} of 3--8~dB above the steady level.
+\item \textbf{The climb through the first 10~m and the final descent add short bursts} of 3--8~dB
+above the steady level (Section~\ref{sec:px4}).
 \item \textbf{Narrow interference tones remain}, up to 6--10~dB above the floor in some
 configurations (Figure~\ref{fig:spectra}), at roughly $-1450$, $-1200$, $-730$, $-380$, $+250$,
 $+960$ and $+1270$~Hz from 160.172~MHz. Ponui's in-flight noise was flat across the channel.
@@ -431,6 +441,36 @@ $+960$ and $+1270$~Hz from 160.172~MHz. Ponui's in-flight noise was flat across 
 \caption{Spectrum in steady flight across the detector's channel.}
 \label{fig:spectra}
 \end{figure}
+
+\subsection{What the flight logs add}
+\label{sec:px4}
+
+\begin{figure}[!htbp]
+\centering\includegraphics[width=\linewidth]{figures/fig11_px4.pdf}
+\caption{The 14 November flights with the PX4 logs: noise (blue), height above the takeoff point
+(grey), and the moments the motors started and stopped (dotted). Dashed: the HF+'s own noise.}
+\label{fig:px4}
+\end{figure}
+
+\begin{itemize}
+\item \textbf{With the choke and 15~ft coax, the motors at hover power add nothing measurable while
+the antenna lies on the ground.} F3 ended with about 15~s of hovering 0.9~m up (TFMini), the
+motors at hover thrust and the antenna on its 15~ft coax lying on the ground: $-166.5$ to
+$-166.9$\dBmHz{}, the receiver's own noise. F2's last seconds below 1.5~m read $-166.4$. The same
+flights read $-163.5$ at 45--53~m. The 3.3~dB in-flight rise appears only with the antenna in the
+air. This supports the point raised in Section~\ref{sec:budget}: with this configuration, the rise
+in flight is the antenna working, hearing the surroundings or the drone, not the motors as such.
+\item \textbf{The noise peaks when the drone is a few metres up}, 5--12~m on the way up and down, with
+the antenna dangling near or touching the ground: up to $-158$\dBmHz{} in F2 and F3, 5~dB over the
+steady level. These are the bursts seen at takeoff and landing.
+\item \textbf{Without the choke or the extension, the drone is noisier near the ground than at
+height}: in the final descent with the motors on, F5 read $-156.5$ against $-161.8$ at height, F6
+$-153.6$ against $-156.6$, F7 $-158.7$ against $-161.5$.
+\item \textbf{The noise does not follow the motor current.} In steady flight its correlation with
+battery current was between $-0.26$ and $+0.23$ on every flight.
+\item \textbf{Heights.} F2 and F3 held 53 and 45~m (175 and 150~ft); F5 28~m; F6 and F7 18--19~m.
+The flight notes' 50~ft for F5--F7 was the planned height.
+\end{itemize}
 
 \subsection{From Ponui to now}
 \label{sec:history}
@@ -489,21 +529,24 @@ with the USB-cable ferrites.}
 \label{fig:ponui}
 \end{figure}
 
-\paragraph{Cumbria: the noise follows the motors, not the height.} In November 2025 the Mini flew
+\paragraph{Cumbria: the noise did not follow the height.} In November 2025 the Mini flew
 inside the shield, its antenna connector on a bulkhead bonded to the shield and the choke fitted, but
 before the regulator change and the aircraft ferrites. In steady flight the noise was $-158.7$ and
 $-157.7$\dBmHz{}, 9--10~dB above the Mini's own noise. In flight 2 (Figure~\ref{fig:cumbria}) the
-noise jumped as soon as the motors spun up, with the drone still on the ground; it stayed within a
-few dB from there to 95~m; it was highest, $-154.4$, after landing with the motors still running and
-the antenna lying on the ground; and it fell to the receiver's own level within seconds of the motors
-stopping, with a tag still transmitting nearby. The noise came from the drone running, not from the
-antenna leaving the ground. Step 3 cannot be split between moving the Mini inside the shield, the
-choke, the site and the higher frequency.
+noise jumped as soon as the motors spun up, with the drone still on the ground, and stayed within a
+few dB from there to 95~m. It was highest, about $-154$, through the final descent and landing.
+The PX4 log shows something the noise alone had hidden: \textbf{the noise outlasted the motors.} It
+stayed at $-154$ for about 17~s after the motors stopped at disarm, then fell to the receiver's own
+level within a second or two; flight 1 did the same (about 15~s). So in Cumbria it was not the
+motors themselves but something that ran on after disarm and then stopped. The level it fell to,
+exactly the receiver's own noise, is what disconnecting or picking up the antenna would give.
+\draftnote{What happened about 15~s after each Cumbria landing?} Step 3 cannot be split between
+moving the Mini inside the shield, the choke, the site and the higher frequency.
 
 \begin{figure}[!htbp]
 \centering\includegraphics[width=\linewidth]{figures/fig10_cumbria.pdf}
-\caption{Cumbria flight 2, 24 November 2025, 173.3~MHz: noise (mean of the two tag channels) and
-height from the logged pulses.}
+\caption{Cumbria flight 2, 24 November 2025, 173.3~MHz: noise (mean of the two tag channels), height
+from the PX4 log (grey), and the moments the motors started and stopped (dotted).}
 \label{fig:cumbria}
 \end{figure}
 
@@ -532,9 +575,12 @@ drone itself adding little or nothing measurable.
 This comparison has a known weakness, raised by Michael Shafer: \textbf{on the ground the antenna lies
 on the soil}, detuned and at no height, so it delivers little outside noise. The ground reading is
 therefore not ``everything but the motors''; the rise into flight combines the motors with the antenna
-starting to work. The planned mast test (Section~\ref{sec:next}) measures the background with the
-antenna working and the drone off, and will separate the two. \draftnote{Update when the mast test is
-done.}
+starting to work. The PX4 logs settle half of this (Section~\ref{sec:px4}): with the motors at hover
+power and the antenna on the ground, the noise stays at the receiver's own level, so the motors running
+do not by themselves raise it. What they cannot say is whether the 3.3~dB at height is the
+surroundings or the drone heard by an antenna that now works. The planned mast test
+(Section~\ref{sec:next}) measures the background with the antenna working and the drone off.
+\draftnote{Update when the mast test is done.}
 
 At Ponui the inferred outside noise was about 30~dB above $kT_0$, far above any background level for
 a quiet island. That noise was the drone: on Day 2 it was there with the motors off, and two
@@ -553,8 +599,8 @@ estimate, checked against the IQ recordings within 0.4~dB, but only for flights 
 detections.
 \item \textbf{Mini gain.} Ponui ran the Mini at gain 20; the calibration used 21. Likely 1--2~dB on
 the Ponui values.
-\item \textbf{Flight stages without telemetry.} Ground, takeoff, steady flight and landing were read
-from the noise and the notes. Heights also differed between configurations (170~ft and 50~ft).
+\item \textbf{Heights differed between configurations}: 45--53~m with the choke and 15~ft coax, 28~m
+without the choke, 18--19~m without the extension. Ponui and Day 2 have no flight logs here.
 \item \textbf{As-installed noise figures.} Both include anything the drone's electronics add through
 USB with the motors off.
 \item \textbf{Absolute accuracy.} The generator's level and the 0.6~dB path loss are each good to a
@@ -574,8 +620,9 @@ receiver and Pi on a separate battery, and the drone off and away. Then the same
 powered at the mast's base, motors off.
 \item \textbf{A strong-signal pass} with each receiver toward a Tabor LS3081P generator sending tag-like
 pulses (20~ms every 1.333~s) from a fixed position, to test the Mini's desensitisation in flight.
-\item \textbf{PX4 flight logs} for all flights, to replace the inferred flight stages with altitude and
-throttle.
+\item \textbf{Keep recording after landing.} Detection now stops at disarm, so the 2026 recordings end
+there. About 30~s more, with the antenna left alone, would show whether anything still runs after
+disarm, as it did in Cumbria.
 \end{enumerate}
 
 \appendix
@@ -586,14 +633,17 @@ throttle.
   \texttt{2025-03-16-Ponui-Day1-Sun}; \texttt{2025-03-17-Ponui-Day2-Mon};
   \texttt{2025-03-23-Ponui-Day8-Sun} (its \texttt{HERELINK\_LOGS} hold the pulse logs of the whole
   trip); \texttt{2025-11-24-Cumbria-Day8-Mon}; \texttt{2026-11-14-Rail-X\_Ranch\_Road};
-  \texttt{2026-11-18-Office\_HF\_v\_Mini\_Testing}.
+  \texttt{2026-11-18-Office\_HF\_v\_Mini\_Testing}; \texttt{2026-11-20-PX4\_LOG\_ARCHIVE} (PX4 logs:
+  \texttt{log\_199}, \texttt{200}, \texttt{202}, \texttt{204}, \texttt{206} are F2, F3, F5, F6, F7;
+  \texttt{log\_189} and \texttt{190} are Cumbria flights 1 and 2).
 \item Per-test notes, VNA files and derived data: \texttt{hardware/noise-reduction/} in the UAV-RT hub
 repository.
 \item Scripts: \texttt{tools/noise\_floor.py}, \texttt{tools/bench\_calibration.py},
 \texttt{tools/pulse\_log\_noise.py}, \texttt{tools/raw\_capture\_floor.py},
 \texttt{tools/noise\_report\_data.py} (rebuilds the 2026 and Day 8 derived data), and, in
 \texttt{hardware/noise-reduction/report/}, \texttt{make\_history\_data.py} (the 2025 field data, from
-the files under \texttt{tests/}) and \texttt{make\_figures.py}.
+the files under \texttt{tests/}), \texttt{make\_px4\_data.py} (the PX4 series) and
+\texttt{make\_figures.py}.
 \end{itemize}
 }
 

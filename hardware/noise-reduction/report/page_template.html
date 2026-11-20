@@ -98,7 +98,7 @@ code{font-family:var(--f-mono);font-size:.9em}
 
 <div class="wrap">
 <header class="stack">
-  <span class="eyebrow">UAV-RT tracking drone · test report · draft 0.2 · 19 Nov 2026</span>
+  <span class="eyebrow">UAV-RT tracking drone · test report · draft 0.3 · 20 Nov 2026</span>
   <h1>How much quieter the drone got</h1>
   <p class="meta">Michael W. Shafer, Northern Arizona University. Analysis and drafting assisted by Claude. 2026 tests at 160.172 MHz; field data from 2025 at 160–173 MHz.</p>
   <p class="draft">Draft. Covers the tests up to 18 November 2026, and the field data from Ponui Island (March 2025) and Cumbria (November 2025) that show how the noise came down. A same-day Airspy Mini vs HF+ flight comparison and a background-noise reference with the antenna on a mast are still to come, and may change the numbers marked as estimates.</p>
@@ -129,7 +129,7 @@ code{font-family:var(--f-mono);font-size:.9em}
     <figcaption>In-flight noise of every flight of the trip with data: median and 10–90 % range. Wellington test flights and Ponui Days 3–8 from the detector's noise estimate in the pulse logs (within 0.4 dB of the IQ recordings); Ponui Day 2 from the IQ recordings. Open circles: fewer than eight pulses above 10 m.</figcaption></figure>
   <ul style="max-width:76ch">
     <li><b>Without the ferrites the drone was loud even standing still:</b> −143 to −149 dBm/Hz on the ground with the motors off, as loud as the later flights were in the air. That noise came from the Pi and avionics along the USB cable, through the Mini and down the outside of the coax.</li>
-    <li><b>Cumbria, November 2025</b> (Mini inside the shield, bonded antenna bulkhead, choke): −158 dBm/Hz in flight. The noise rose as the motors spun up on the ground, stayed level from a few metres to 95 m, peaked after landing with the motors still running, and dropped to the receiver's own level when they stopped. The noise follows the motors, not the antenna's height. Choose D2, C1 or C2 in the flight timelines below to see these flights.</li>
+    <li><b>Cumbria, November 2025</b> (Mini inside the shield, bonded antenna bulkhead, choke): −158 dBm/Hz in flight. The noise rose as the motors spun up on the ground, stayed level from a few metres to 95 m, and peaked through the final descent and landing. The PX4 logs show it then outlasted the motors by about 15–17 s before dropping to the receiver's own level: something other than the motors was running after disarm. Choose D2, C1 or C2 in the flight timelines below to see these flights.</li>
   </ul>
 </section>
 
@@ -145,7 +145,19 @@ code{font-family:var(--f-mono);font-size:.9em}
   <p class="lede">The noise floor second by second, already converted to dBm/Hz at the receiver input so the old and new receivers share one scale. Choose which flights to show. D2 is Ponui Day 2 flight 4; C1 and C2 are the Cumbria flights at 173 MHz.</p>
   <div class="controls" id="tl-chips" role="group" aria-label="Flights shown"></div>
   <figure class="figure"><div class="chart" id="tl-chart"></div>
-    <figcaption>The jump near the start of each 2026 flight is takeoff; excursions near the end are probably landing. No telemetry was recorded for these flights yet, so flight stages are read from the noise. Ponui flights were much longer.</figcaption></figure>
+    <figcaption>The jump near the start of each 2026 flight is takeoff; the excursions near the end are the descent, confirmed by the PX4 logs. Ponui flights were much longer.</figcaption></figure>
+</section>
+
+<section id="px4">
+  <h2>What the flight logs add</h2>
+  <p class="lede">The PX4 logs give each 2026 flight's height and motor state, aligned to the noise to the second.</p>
+  <ul style="max-width:76ch">
+    <li><b>With the choke and 15 ft coax, the motors at hover power add nothing measurable while the antenna lies on the ground.</b> F3 ended with about 15 s of hovering 0.9 m up, motors at hover thrust, antenna on the ground: −166.5 to −166.9 dBm/Hz, the receiver's own noise. At 45–53 m the same flights read −163.5. The 3.3 dB rise appears only with the antenna in the air.</li>
+    <li><b>The noise peaks when the drone is 5–12 m up</b>, with the antenna dangling near the ground: up to −158 dBm/Hz in F2 and F3. These are the bursts at takeoff and landing.</li>
+    <li><b>Without the choke or the extension, the drone is noisier near the ground than at height:</b> F5 −156.5 in the final descent against −161.8 at height, F6 −153.6 against −156.6, F7 −158.7 against −161.5.</li>
+    <li><b>The noise does not follow the motor current</b>: correlation between −0.26 and +0.23 in steady flight on every flight.</li>
+    <li><b>Heights:</b> F2 53 m, F3 45 m, F5 28 m, F6 and F7 18–19 m above the takeoff point. The notes' 50 ft for F5–F7 was the planned height.</li>
+  </ul>
 </section>
 
 <section id="spectra">
@@ -254,19 +266,19 @@ code{font-family:var(--f-mono);font-size:.9em}
       <li>Different sites and frequencies: Ponui (160–161 MHz), Cumbria (173 MHz) and Arizona (160 MHz) differ in background noise. Stages 3 and 4 include that; the USB-ferrite step does not.</li>
       <li>Cumbria ran at 173 MHz and Mini gain 21; the calibration was at 160 MHz.</li>
       <li>Ponui ran the Mini at gain 20; the calibration used 21. Likely 1–2 dB on the Ponui values.</li>
-      <li>No telemetry for the 2026 flights; heights also differed between configurations.</li>
+      <li>Heights differed between configurations: 45–53 m with the choke and 15 ft coax, 28 m without the choke, 18–19 m without the extension.</li>
       <li>On the ground the antenna lies on the soil and hears little outside noise, so "ground" is not quite "everything except the motors".</li>
       <li>Absolute levels are good to a few tenths of a dB; the comparison between receivers is tighter.</li></ul></div>
     <div class="figure"><h3>Planned</h3><ul style="font-size:14px">
       <li>Same-day flights alternating HF+, Mini, HF+ with choke and 15 ft coax: does the Mini pick up out-of-band signals the HF+ rejects?</li>
       <li>Background reference: antenna on a mast, drone off; then drone powered at the base, motors off.</li>
       <li>A strong-signal pass toward tag-like pulses from a Tabor LS3081P generator.</li>
-      <li>PX4 flight logs, to replace inferred flight stages with altitude and throttle.</li></ul></div>
+      <li>Keep recording about 30 s after landing (detection now stops at disarm), to see whether anything still runs after disarm, as it did in Cumbria.</li></ul></div>
   </div>
 </section>
 
 <footer class="stack">
-  <p>Raw recordings: OneDrive <code>FLIGHT_TESTING_DATA</code> (2025-03-16-Ponui-Day1-Sun, 2025-03-17-Ponui-Day2-Mon, 2025-03-23-Ponui-Day8-Sun, 2025-11-24-Cumbria-Day8-Mon, 2026-11-14-Rail-X_Ranch_Road, 2026-11-18-Office_HF_v_Mini_Testing). Derived data, per-test notes and the PDF version of this report: <code>hardware/noise-reduction/</code> in the UAV-RT hub repository. Rebuild the data with <code>tools/noise_report_data.py</code> and <code>report/make_history_data.py</code>.</p>
+  <p>Raw recordings: OneDrive <code>FLIGHT_TESTING_DATA</code> (2026-11-20-PX4_LOG_ARCHIVE, 2025-03-16-Ponui-Day1-Sun, 2025-03-17-Ponui-Day2-Mon, 2025-03-23-Ponui-Day8-Sun, 2025-11-24-Cumbria-Day8-Mon, 2026-11-14-Rail-X_Ranch_Road, 2026-11-18-Office_HF_v_Mini_Testing). Derived data, per-test notes and the PDF version of this report: <code>hardware/noise-reduction/</code> in the UAV-RT hub repository. Rebuild the data with <code>tools/noise_report_data.py</code> and <code>report/make_history_data.py</code>.</p>
 </footer>
 </div>
 

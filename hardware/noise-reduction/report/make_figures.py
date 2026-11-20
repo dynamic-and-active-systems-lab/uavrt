@@ -154,14 +154,39 @@ ax.set_xlabel("Seconds from Start Detection"); ax.set_ylabel("dBm/Hz"); ax.legen
 ax.set_title("B. One flight from each, IQ recordings",loc="left")
 save(fig,"fig9_ponui_ferrites")
 
-# --- Fig 10: Cumbria flight 2, noise and height
-fig,ax=plt.subplots(figsize=(6.6,2.9)); v=np.array(HT["C2"]); a=np.array(ALT["C2"]); t=np.arange(len(v))
-ax2=ax.twinx(); ax2.fill_between(t,0,np.nan_to_num(a),color=GRID,alpha=0.9,lw=0,zorder=0); ax2.set_ylim(0,400); ax2.set_ylabel("Height (m)",color=NEUT); ax2.spines["right"].set_visible(True); ax2.tick_params(colors=NEUT); ax2.grid(False)
-ax.set_zorder(ax2.get_zorder()+1); ax.patch.set_visible(False)
-ax.plot(t,v,color=C["blue"],lw=1.1); floorline(ax,NM,"Mini's own noise",x=0.02,ha="left"); ax2.text(300,105,"height",fontsize=7,color=NEUT,ha="center")
-for x,y,txt,ha in ((28,-152.5,"motors start, still on the ground","left"),(612,-146.5,"landed, motors on","right"),(622,-165.5,"motors off","right")):
-    ax.text(x,y,txt,fontsize=7,color=INK2,ha=ha)
-ax.set_ylim(-170,-140); ax.set_xlim(0,len(v)); ax.set_xlabel("Seconds from Start Detection"); ax.set_ylabel("dBm/Hz")
+# --- PX4 series aligned to the recordings (make_px4_data.py)
+PX=collections.defaultdict(lambda: collections.defaultdict(list))
+for r in rd("px4_timelines.csv"):
+    for c in ("height_m","motor_mean","lidar_m","current_a"): PX[r["flight"]][c].append(float(r[c]) if r[c] else np.nan)
+def px4_panel(ax,v,fid,col,title,ylim=(-170,-140),hmax=None):
+    hgt=np.array(PX[fid]["height_m"]); mot=np.array(PX[fid]["motor_mean"]); t=np.arange(len(v))
+    g=~np.isnan(hgt); g2=~np.isnan(mot)
+    if g.any(): hgt=np.where(g,hgt,np.interp(t,t[g],hgt[g]))
+    if g2.any(): mot=np.where(g2,mot,np.interp(t,t[g2],mot[g2]))
+    hgt[(t<np.argmax(g))|(t>len(g)-1-np.argmax(g[::-1]))]=np.nan
+    ax2=ax.twinx(); hm=hmax or max(20,np.nanmax(hgt)*2.6)
+    ax2.fill_between(t,0,np.clip(np.nan_to_num(hgt),0,None),color=GRID,alpha=0.95,lw=0,zorder=0); ax2.set_ylim(0,hm)
+    ax2.set_ylabel("height (m)",color=NEUT,fontsize=7.5); ax2.spines["right"].set_visible(True); ax2.tick_params(colors=NEUT,labelsize=7); ax2.grid(False)
+    ax.set_zorder(ax2.get_zorder()+1); ax.patch.set_visible(False)
+    on=np.where(mot>0.05)[0]
+    if len(on):
+        for x in (on[0],on[-1]): ax.axvline(x,color=INK2,lw=0.8,ls=(0,(2,2)))
+    ax.plot(t,v,color=col,lw=1.1); ax.set_ylim(*ylim); ax.set_xlim(0,len(v)); ax.set_title(title,loc="left",fontsize=9)
+    return on
+
+# --- Fig 10: Cumbria flight 2, noise, height and motors (PX4)
+fig,ax=plt.subplots(figsize=(6.6,2.9)); v=np.array(HT["C2"])
+on=px4_panel(ax,v,"C2",C["blue"],"",hmax=400); floorline(ax,NM,"Mini's own noise",x=0.02,ha="left")
+ax.text(on[0]+6,-150.5,"motors spin up",fontsize=7,color=INK2); ax.text(on[-1]-4,-146.5,"motors stop (disarmed)",fontsize=7,color=INK2,ha="right")
+ax.text(on[-1]-4,-163.5,"noise stops ~17 s after disarm →",fontsize=7,color=INK2,ha="right")
+ax.set_xlabel("Seconds from Start Detection"); ax.set_ylabel("dBm/Hz")
 save(fig,"fig10_cumbria")
+
+# --- Fig 11: the 2026-11-14 flights with the PX4 logs
+fig,axs=plt.subplots(5,1,figsize=(6.6,8.6),sharey=True)
+for ax,(fid,title) in zip(axs,(("F2","F2  choke + 15 ft coax"),("F3","F3  choke + 15 ft coax"),("F5","F5  no choke, 15 ft coax"),("F7","F7  choke, no extension"),("F6","F6  no choke, no extension"))):
+    px4_panel(ax,np.array(TL[fid]),fid,C["blue"],title,ylim=(-170,-148),hmax=150); ax.axhline(NH,color=NEUT,lw=0.9,ls=(0,(4,3))); ax.set_ylabel("dBm/Hz",fontsize=8)
+axs[0].text(14,-151.5,"dashed verticals: motors start and stop; grey: height from the PX4 log",fontsize=7,color=INK2)
+axs[-1].set_xlabel("Seconds from Start Detection"); fig.tight_layout(h_pad=0.6); save(fig,"fig11_px4")
 
 print(json.dumps({"external_now":b["now"],"external_ponui":b["ponui"],"fam":fam},default=float,indent=0))

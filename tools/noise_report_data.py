@@ -60,11 +60,11 @@ with open(os.path.join(OUT, "bench_spectra.csv"), "w", newline="") as fh:
 conv = lambda m, rx: (NM + (m - XM)) if rx == "mini" else (NH + (m - XH))
 T = os.path.join(FTD, "2026-11-14-Rail-X_Ranch_Road/DRONE LOGS"); P0 = os.path.join(FTD, "2025-03-23-Ponui-Day8-Sun/DRONE_LOGS")
 flights = [  # id, path, fs, rx, config, ground(s), steady(s)
- ("F2", f"{T}/Logs-Detectors-2026-11-14_17-31-39/data_record.4.1.bin", 3840, "hf", "Choke + 15 ft coax, ~170 ft, 30 s hover", (0, 9), (20, 135)),
- ("F3", f"{T}/Logs-Detectors-2026-11-14_17-40-15/data_record.4.1.bin", 3840, "hf", "Choke + 15 ft coax, ~170 ft", (0, 8), (18, 85)),
- ("F5", f"{T}/Logs-Detectors-2026-11-14_17-46-24/data_record.4.1.bin", 3840, "hf", "No choke + 15 ft coax, 50 ft", (0, 7), (18, 80)),
- ("F6", f"{T}/Logs-Detectors-2026-11-14_17-50-16/data_record.4.1.bin", 3840, "hf", "No choke, no extension, 50 ft", (0, 8), (16, 80)),
- ("F7", f"{T}/Logs-Detectors-2026-11-14_17-53-16/data_record.4.1.bin", 3840, "hf", "Choke, no extension, 50 ft", (0, 8), (20, 70)),
+ ("F2", f"{T}/Logs-Detectors-2026-11-14_17-31-39/data_record.4.1.bin", 3840, "hf", "Choke + 15 ft coax, 53 m (175 ft), 30 s hover", (0, 9), (20, 135)),
+ ("F3", f"{T}/Logs-Detectors-2026-11-14_17-40-15/data_record.4.1.bin", 3840, "hf", "Choke + 15 ft coax, 45 m (150 ft)", (0, 8), (18, 85)),
+ ("F5", f"{T}/Logs-Detectors-2026-11-14_17-46-24/data_record.4.1.bin", 3840, "hf", "No choke + 15 ft coax, 28 m (90 ft)", (0, 7), (18, 80)),
+ ("F6", f"{T}/Logs-Detectors-2026-11-14_17-50-16/data_record.4.1.bin", 3840, "hf", "No choke, no extension, 19 m (60 ft)", (0, 8), (16, 80)),
+ ("F7", f"{T}/Logs-Detectors-2026-11-14_17-53-16/data_record.4.1.bin", 3840, "hf", "Choke, no extension, 18 m (60 ft)", (0, 8), (20, 70)),
  ("P1", f"{P0}/Logs-Detectors-2025-03-22_04-17-55/data_record.24.1.bin", 3750, "mini", "Ponui flight 1 (old setup, Mini gain 20)", None, (30, 450)),
  ("P2", f"{P0}/Logs-Detectors-2025-03-22_04-34-33/data_record.24.1.bin", 3750, "mini", "Ponui flight 2 (old setup, Mini gain 20)", (0, 18), (30, 1050)),
  ("P3", f"{P0}/Logs-Detectors-2025-03-22_05-02-04/data_record.24.1.bin", 3750, "mini", "Ponui flight 3 (old setup, Mini gain 20)", (0, 18), (30, 600)),
