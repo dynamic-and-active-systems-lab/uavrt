@@ -216,6 +216,7 @@ with $k_B T = -173.9$\dBmHz{} for a load at about 295~K. Script:
 \texttt{tools/bench\_calibration.py}.
 
 \subsection{Converting the flight recordings to dBm/Hz}
+\label{sec:flightconv}
 A flight's noise floor $m_\text{flight}$, in receiver units, converts through the same receiver's
 calibration-load reading $m_\text{load}$, taken with the same estimator, and that load's known
 input-referred noise:
@@ -571,11 +572,11 @@ Every March 2025 flight used the PHW150C with its whip untrimmed, resonant near 
 at the tags' 160--161~MHz. On 17 October 2025 Michael flew two back-to-back flights at 160.17~MHz that
 differed only in the whip: the untrimmed one, then one trimmed to 160~MHz with a NanoVNA. Same Mini at
 gain 21, the setting of the bench calibration, and a tag transmitting on the ground near the takeoff
-point. \draftnote{Which recording had which whip is inferred: session 19-59-56 untrimmed, 20-05-37
-trimmed, because the second heard the tag more strongly. Confirm.} The aircraft was between the Ponui
-and Cumbria configurations: as flown at Ponui, but with
-several internal avionics grounds disconnected to break ground loops, and otherwise as later flown in
-Cumbria (Figure~\ref{fig:antenna}).
+point. The aircraft was between the Ponui and Cumbria configurations: as flown at Ponui, but with
+several internal avionics grounds disconnected to break ground loops, and working toward the Cumbria
+configuration. The choke was very probably not fitted (Michael started flying it a day or two into
+the Cumbria trip); whether the Mini was inside the shield or outside is not recorded
+(Figure~\ref{fig:antenna}).
 \begin{itemize}
 \item \textbf{Trimming the whip cut the in-flight noise by 9.4~dB}, from $-143.8$ to
 $-153.2$\dBmHz{}. On the ground with the motors off the two were within 1.4~dB ($-166.3$ and
@@ -592,6 +593,16 @@ inflated the noise rather than hiding it, and part of the reduction since then i
 so the 12.8~dB from Ponui to Cumbria includes the whip as well as moving the Mini inside the shield, the
 choke, and the site and frequency. In this test configuration the whip alone was worth 9.4~dB.
 \item \textbf{The USB-ferrite step is unaffected}: Day 2 and Days 3--8 used the same untrimmed whip.
+\item \textbf{With the untrimmed whip, the October flight matched Ponui in the air.} Ponui flight P3
+read $-145.1$\dBmHz{} in steady flight and the October untrimmed flight $-143.8$; Ponui's gain of 20
+probably reads 1--2~dB low (Section~\ref{sec:flightconv}), which closes most of that gap. Both spectra
+were flat across the channel. On the ground with the motors off, October was 4--5~dB quieter
+($-166.3$ against $-162.5$), so the ground-loop work and any change in where the Mini sat cleaned up
+the motors-off noise but left the in-flight noise where it was. With the untrimmed whip, the in-flight
+noise came in through the antenna and its coax, and nothing else on the aircraft moved it.
+\item \textbf{That splits stage 3}: from Ponui ($-145.4$) to the October untrimmed flight, about
+nothing; trimming the whip, $-9.4$~dB (to $-153.2$); from there to Cumbria ($-158.2$), another
+$-5$~dB from the choke, the site, the frequency (173~MHz) and the gain setting together.
 \end{itemize}
 A third flight that day, at 173.13~MHz, read $-151.3$\dBmHz{} in flight; which whip it carried is
 not recorded.
