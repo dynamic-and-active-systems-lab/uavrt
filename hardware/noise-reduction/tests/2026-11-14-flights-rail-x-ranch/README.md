@@ -77,7 +77,10 @@ Ponui and today's absolute values are in different receivers' units and must not
 | 6 | `log_204` | 17:50:22 | 19 m (60 ft) | 19 m | 17-50-16 |
 | 7 | `log_206` | 17:53:25 | 18 m (60 ft) | 18 m | 17-53-16 |
 
-`log_197`, `203` and `205` are brief arm/disarm cycles. Heights are above the takeoff point. The
+`log_197`, `203` and `205` are brief arm/disarm cycles. Flights 1–4 lost RC and telemetry together
+for 1–7 s beyond about 40 m and switched to Return; the cause was the SIYI air unit's missing 5.8 GHz
+antennas (`../../../siyi-link-debug-2026-11-20.md`). That explains the "lost signals" in the notes and
+the unplanned maneuvering in flights 2 and 3. The radio recordings are unaffected. Heights are above the takeoff point. The
 notes' 50 ft for flights 4–7 was the planned height. Per-second extract: `px4_per_second.csv`
 (height, mean motor command, TFMini range, battery current, landed flag); extracted with `pyulog`.
 

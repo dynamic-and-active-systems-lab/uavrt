@@ -24,11 +24,11 @@ part's label when you have one.
 | Item | Part | Notes |
 | --- | --- | --- |
 | FC | CubePilot Cube Orange+ | Carrier board: *not recorded*. |
-| Firmware | PX4 | *Unverified*, inferred from the PX4 parameter names used for the companion link (`MAV_1_CONFIG`, `SER_TEL2_BAUD`). Version: *not recorded*. |
+| Firmware | PX4 | v1.17.0, stable branch (commit `d6f12ad1`), from the 2026-11-14 flight logs. In Cumbria, 2025-11-24, it was v1.14.3. |
 | GPS / compass | CubePilot Here3+ | On CAN 1. Outside the vehicle shield, forward of the fuselage between arms 1 and 3, level with the fuselage top (no mast). Its cable runs inside the shield. |
 | Rangefinder | Benewake TFMini-S lidar | Inside the vehicle shield, pointing down through the belly pan; a port is cut in the shield over its optics. Powered from a Cube serial port. |
-| RC link | SIYI air unit | Model: *not recorded*. Paired with the SIYI UniRC Pro 7 handheld; see [Ground station](#ground-station). |
-| Telemetry | SIYI air unit | Same unit as the RC link. UART and S.Bus to the Cube; powered directly from the power distribution board. Which Cube TELEM port it uses, and that port's PX4 MAVLink instance, are *not recorded*; this matters for cause 3 in `field-notes.md`. |
+| RC link | SIYI air unit | Model: *not recorded*. Paired with the SIYI UniRC Pro 7 handheld; see [Ground station](#ground-station). RC reaches the Cube as S.Bus. Dual-band, 2.4 and 5.8 GHz, band chosen automatically. **Four antennas, all required**: two 5.8 GHz (MMCX quick-release) and two 2.4 GHz (IPEX). With only the 2.4 GHz pair fitted, the link dropped out beyond about 40 m (2026-11-14; `siyi-link-debug-2026-11-20.md`). Manual: point them down along the arms, at least 10 mm from carbon or metal and 50 mm apart, cables uncrossed and away from the ESCs. Failsafe: Return after 0.5 s of RC loss (`NAV_RCL_ACT` 2, `COM_RC_LOSS_T` 0.5); data-link loss action off (`NAV_DLL_ACT` 0). |
+| Telemetry | SIYI air unit | Same unit as the RC link. UART and S.Bus to the Cube; powered directly from the power distribution board. On **TELEM1**, PX4 MAVLink instance 0 (`MAV_0_CONFIG` 101, normal mode, forwarding on). Baud 57600 in the 2026-11-14 log, raised to 115200 on 2026-11-20 (`SER_TEL1_BAUD`, with UniGCS's datalink to match). Data rate capped at 1200 bytes/s (`MAV_0_RATE`); setting it to 0 is the next step on the UniGCS parameter loop. The Pi is on TELEM2, instance 1 (`MAV_1_CONFIG` 102, Onboard mode, 921600 baud). |
 
 ## Power distribution
 
@@ -136,6 +136,14 @@ HF+'s USB cable.
 | Antenna | Larsen (now Pulse Electronics) PHW150C | The project's omnidirectional antenna. An end-fed half-wave for 144–174 MHz with a base coil and field-tunable whip, and no ground plane; the project's documents call it the monopole. Whip length as tuned, and SWR: *not recorded*. The project also flies directional Telonics antennas; whether this aircraft carries them: *not recorded*. |
 | Feed | RG-316 coax, 15 ft (about 4.6 m) | Choked at the HF+ end (F10 in [Ferrites](#ferrites)). |
 | Mounting | Hangs below the aircraft on its coax | The hanging coax is vertical, parallel to the whip, which makes it the main path for drone noise into the antenna; see `emi-design.md`, F10 and F13. |
+
+## Preflight checks
+
+Started 2026-11-20; add to it as problems turn up.
+
+- All four SIYI air unit antennas fitted and seated (`siyi-link-debug-2026-11-20.md`).
+- For noise tests: keep the detector recording about 30 s after landing, and leave the antenna
+  alone during that time (`noise-reduction/report/`, planned tests).
 
 ## Ground station
 
