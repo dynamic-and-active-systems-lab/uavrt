@@ -133,7 +133,7 @@ HF+'s USB cable.
 
 | Item | Part | Notes |
 | --- | --- | --- |
-| Antenna | Larsen (now Pulse Electronics) PHW150C | The project's omnidirectional antenna. An end-fed half-wave for 144–174 MHz with a base coil and field-tunable whip, and no ground plane; the project's documents call it the monopole. Whip length as tuned, and SWR: *not recorded*. The project also flies directional Telonics antennas; whether this aircraft carries them: *not recorded*. |
+| Antenna | Larsen (now Pulse Electronics) PHW150C | The project's omnidirectional antenna. An end-fed half-wave for 144–174 MHz with a base coil and field-tunable whip, and no ground plane; the project's documents call it the monopole. **Whip history (Michael, 2026-11-20):** bought shortly before Ponui and flown there, March 2025, with the whip at its as-sold length; untrimmed it is resonant near the bottom of its range, about 144 MHz, so it was off tune at the 160–161 MHz tags by an unmeasured amount. Since then Michael trims whips with a NanoVNA: one to about 173 MHz for Cumbria, November 2025 (exact frequency not recorded), and one to 160.45 MHz, flown 2026-11-14. Whip lengths and SWR on the 15 ft coax: *not recorded*. Effect on the noise record: `noise-reduction/report/`, "The antenna at Ponui". The project also flies directional Telonics antennas; whether this aircraft carries them: *not recorded*. |
 | Feed | RG-316 coax, 15 ft (about 4.6 m) | Choked at the HF+ end (F10 in [Ferrites](#ferrites)). |
 | Mounting | Hangs below the aircraft on its coax | The hanging coax is vertical, parallel to the whip, which makes it the main path for drone noise into the antenna; see `emi-design.md`, F10 and F13. |
 

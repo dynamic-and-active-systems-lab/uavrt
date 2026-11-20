@@ -4,7 +4,7 @@
 floors in dBm/Hz. The improvement over Ponui is about 18 dB, not 13, and the remaining in-flight
 noise is only 3.3 dB above the HF+'s own floor. Read that note for the corrected comparison.
 
-Seven flights, no tag out, receiver tuned to 160.172 MHz, the frequency of the last Ponui flight.
+Seven flights, no tag out, receiver tuned to 160.172 MHz, the frequency of the last Ponui flight. PHW150C whip trimmed to 160.45 MHz (Michael's notes).
 Five recorded radio data. Data and Michael's notes:
 `OneDrive-NorthernArizonaUniversity/FLIGHT_TESTING_DATA/2026-11-14-Rail-X_Ranch_Road/`.
 Analysed 2026-11-14 with `tools/noise_floor.py`. Figures: `timelines.png`, `spectra.png`.

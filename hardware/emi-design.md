@@ -379,7 +379,7 @@ the next step.
 5. Weight of a 0443178181. Not on the Fair-Rite datasheet and not known; weigh one on a gram scale.
 6. Tag frequency to use for testing. Candidate: 160.172 MHz, used for the 2026-11-09 flight.
 7. Whether the PM12S-4A is as quiet at 150 MHz as the UBEC DUO; needs measurement.
-8. The PHW150C's whip length as tuned, and SWR across 144–170 MHz on its 15 ft of RG-316.
+8. The PHW150C's whip length as tuned, and SWR across 144–170 MHz on its 15 ft of RG-316. **Partly answered 2026-11-20:** whips are now trimmed with a NanoVNA, one to 160.45 MHz and one to about 173 MHz; at Ponui the whip was untrimmed (resonant near 144 MHz) **[USER]**. Lengths and SWR still not recorded.
 9. ~~Current battery-to-power-module lead gauge.~~ **Answered 2026-11-10:** Michael rewired the XT90-to-monitor lead in 12 AWG, through F1, which made the 2-pass winding much easier **[USER]**.
 
 ---

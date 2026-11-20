@@ -37,12 +37,15 @@ same-day A/B comparison yet.
 
 | When | Receiver and where it sits | Antenna side | Aircraft | In flight, dBm/Hz |
 |---|---|---|---|---|
-| Mar 2025, up to Ponui Day 2 (Mon 17) | Airspy Mini outside the shield, on a USB extension from a USB bulkhead not deliberately bonded to the shield (it may have touched it); no ferrites on the extension | 15 ft RG-316, no choke | Castle BEC; no ferrites | −135.0 |
+| Mar 2025, up to Ponui Day 2 (Mon 17) | Airspy Mini outside the shield, on a USB extension from a USB bulkhead not deliberately bonded to the shield (it may have touched it); no ferrites on the extension | 15 ft RG-316, no choke; PHW150C with its whip untrimmed (resonant near 144 MHz) | Castle BEC; no ferrites | −135.0 |
 | Mar 2025, Ponui from Day 3 (Tue 18) | The same, with two snap-on ferrites on the USB extension (two passes and three passes), fitted after cabin tests on Tue 18 | The same | The same | −145.4 |
-| Nov 2025, Cumbria | Mini inside the shield on the Pi; SMA bulkhead with the back shell bonded to the shield | Choke at the bulkhead (from the second day), 15 ft RG-316, PHW150C | Castle BEC; no ferrites | about −158 |
-| Since Cumbria; measured Nov 2026 | Airspy HF+ outside the shield, through a bonded USB bulkhead | Choke, 15 ft RG-316, PHW150C | PM12S-4A in place of the Castle BEC; ferrites F1–F9 and the rest of `../emi-design.md` | −163.5 |
+| Nov 2025, Cumbria | Mini inside the shield on the Pi; SMA bulkhead with the back shell bonded to the shield | Choke at the bulkhead (from the second day), 15 ft RG-316, PHW150C trimmed to about 173 MHz | Castle BEC; no ferrites | about −158 |
+| Since Cumbria; measured Nov 2026 | Airspy HF+ outside the shield, through a bonded USB bulkhead | Choke, 15 ft RG-316, PHW150C trimmed to 160.45 MHz | PM12S-4A in place of the Castle BEC; ferrites F1–F9 and the rest of `../emi-design.md` | −163.5 |
 
-Not recorded: the antenna at Ponui.
+The untrimmed whip at Ponui means the Ponui noise would probably have read higher with a tuned
+antenna, so the reduction since then is probably understated; the USB-ferrite step is unaffected,
+since Day 2 and Days 3–8 used the same whip. Not yet measured: the untrimmed whip's mismatch at
+160–161 MHz. See the report, "The antenna at Ponui".
 
 ## Raw data
 

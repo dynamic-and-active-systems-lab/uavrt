@@ -124,7 +124,7 @@ code{font-family:var(--f-mono);font-size:.9em}
 
 <section id="ferrites">
   <h2>The ferrites on the USB cable</h2>
-  <p class="lede">Ponui Day 2, 17 March 2025: four flights with the Mini hanging outside the shield on a USB extension with no ferrites. On the 18th it rained, cabin tests showed ferrites on the USB cable helped, and every later flight carried two snap-on ferrites on it. Same Mini at gain 20, same island, same aircraft. In flight the noise fell 10.4 dB; with the motors off it fell about 17 dB.</p>
+  <p class="lede">Ponui Day 2, 17 March 2025: four flights with the Mini hanging outside the shield on a USB extension with no ferrites. On the 18th it rained, cabin tests showed ferrites on the USB cable helped, and every later flight carried two snap-on ferrites on it. Same Mini at gain 20, same untrimmed antenna, same island, same aircraft. In flight the noise fell 10.4 dB; with the motors off it fell about 17 dB.</p>
   <figure class="figure"><div class="chart" id="trip-chart"></div>
     <figcaption>In-flight noise of every flight of the trip with data: median and 10–90 % range. Wellington test flights and Ponui Days 3–8 from the detector's noise estimate in the pulse logs (within 0.4 dB of the IQ recordings); Ponui Day 2 from the IQ recordings. Open circles: fewer than eight pulses above 10 m.</figcaption></figure>
   <ul style="max-width:76ch">
@@ -225,7 +225,7 @@ code{font-family:var(--f-mono);font-size:.9em}
   <div class="tablewrap"><table>
     <thead><tr><th>Test</th><th>Date</th><th>Configuration</th><th>Receiver</th><th class="n">Ground</th><th class="n">Flight</th><th class="n">Flight above own noise</th></tr></thead>
     <tbody id="cfg-table"></tbody></table></div>
-  <p style="font-size:13px;color:var(--ink2)">Ground and flight in dBm/Hz at the receiver input. At Ponui the Mini hung outside the shield on a USB extension (two snap-on ferrites on it from Day 3, none before) from a USB bulkhead not deliberately bonded to the shield; no choke, no aircraft ferrites, Castle BEC. Changes since: Airspy HF+ in place of the Mini; a 12-turn crossover common-mode choke on a Fair-Rite 5943002701 (mix 43) at the antenna input; the USB bulkhead bonded to the shield; mix-43 ferrites on battery, motor-controller, regulator, radio-link, CAN and GPS cables; a PM12S-4A regulator in place of the Castle BEC, wrapped and grounded with the battery monitor.</p>
+  <p style="font-size:13px;color:var(--ink2)">Ground and flight in dBm/Hz at the receiver input. At Ponui the Mini hung outside the shield on a USB extension (two snap-on ferrites on it from Day 3, none before) from a USB bulkhead not deliberately bonded to the shield; no choke, no aircraft ferrites, Castle BEC, and the PHW150C antenna's whip untrimmed (resonant near 144 MHz rather than 160 MHz). Changes since: the whip trimmed to the working frequency (about 173 MHz in Cumbria, 160.45 MHz now); Airspy HF+ in place of the Mini; a 12-turn crossover common-mode choke on a Fair-Rite 5943002701 (mix 43) at the antenna input; the USB bulkhead bonded to the shield; mix-43 ferrites on battery, motor-controller, regulator, radio-link, CAN and GPS cables; a PM12S-4A regulator in place of the Castle BEC, wrapped and grounded with the battery monitor.</p>
 </section>
 
 <section id="methods" class="stack">
@@ -265,6 +265,7 @@ code{font-family:var(--f-mono);font-size:.9em}
     <div class="figure"><h3>Known limits</h3><ul style="font-size:14px">
       <li>Different sites and frequencies: Ponui (160–161 MHz), Cumbria (173 MHz) and Arizona (160 MHz) differ in background noise. Stages 3 and 4 include that; the USB-ferrite step does not.</li>
       <li>Cumbria ran at 173 MHz and Mini gain 21; the calibration was at 160 MHz.</li>
+      <li>Every March 2025 flight used the PHW150C with its whip untrimmed, so it was off tune at 160–161 MHz by an amount not yet measured. Noise arriving through the antenna would probably have read higher with a tuned whip, so the reduction since Ponui is probably understated; the USB-ferrite step is unaffected (same whip on Day 2 and after). Cumbria's whip was trimmed to about 173 MHz, the 2026 whip to 160.45 MHz.</li>
       <li>Ponui ran the Mini at gain 20; the calibration used 21. Likely 1–2 dB on the Ponui values.</li>
       <li>Heights differed between configurations: 45–53 m with the choke and 15 ft coax, 28 m without the choke, 18–19 m without the extension.</li>
       <li>On the ground the antenna lies on the soil and hears little outside noise, so "ground" is not quite "everything except the motors".</li>

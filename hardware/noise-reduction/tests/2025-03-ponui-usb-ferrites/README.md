@@ -8,7 +8,7 @@ noise record.
 **Configuration (Michael, 2026-11-19).** Airspy Mini hanging outside the drone's RF shield on a USB
 extension, plugged into a USB bulkhead on the fuselage that was not deliberately bonded to the
 shield. 15 ft RG-316 to the antenna, no common-mode choke, no ferrites on the aircraft's own wiring,
-Castle BEC. Mini gain 20 throughout. Day 2 (Mon 17 March) flew with no ferrites on the USB
+Castle BEC. Mini gain 20 throughout. The PHW150C's whip was untrimmed on every flight of the trip, so resonant near 144 MHz rather than 160–161 MHz; the same whip on both sides of the comparison, so the ferrite step is unaffected. Day 2 (Mon 17 March) flew with no ferrites on the USB
 extension. Tue 18 it rained; debugging in the cabin showed that ferrites on the USB cable helped a
 lot. Every flight after the 17th had two snap-on ferrites on the extension, one with two passes and
 one with three.

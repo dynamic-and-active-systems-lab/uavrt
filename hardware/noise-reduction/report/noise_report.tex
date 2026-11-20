@@ -78,13 +78,18 @@ signal-to-noise ratio, which shortens the distance at which a tag can be detecte
 \subsection{What changed between Ponui and now}
 At Ponui the receiver was an Airspy Mini hanging outside the drone's RF shield on a USB extension.
 The extension plugged into a USB bulkhead on the fuselage that was not deliberately bonded to the
-shield, though it may have touched it. The Mini fed an omnidirectional antenna hanging about 15~ft
-(4.6~m) below the drone on RG-316 coax, with no common-mode choke. By the last day, the flights
+shield, though it may have touched it. The Mini fed a PHW150C antenna, an end-fed half-wave sold for
+144--174~MHz, hanging about 15~ft (4.6~m) below the drone on RG-316 coax, with no common-mode choke.
+Its whip was still the length it was sold at: it is meant to be trimmed to the working frequency, and
+untrimmed it is resonant near the bottom of its range, about 144~MHz, not at the tags' 160--161~MHz
+(Section~\ref{sec:antenna}). By the last day, the flights
 analysed here, the USB extension carried two snap-on ferrites, one with two passes and one with
 three, fitted after Day 2; the flights up to Day 2 had none. There were no ferrites on the aircraft's own wiring,
 and a Castle Creations BEC supplied 5~V. Since then:
 \begin{itemize}
 \item the receiver is an Airspy HF+ Discovery;
+\item the antenna's whip is trimmed to the working frequency with a NanoVNA: to about 173~MHz for
+Cumbria (the exact frequency was not recorded) and to 160.45~MHz for the 2026 flights;
 \item a common-mode choke --- 12 turns of the coax, as a crossover winding, on a Fair-Rite
 5943002701 mix-43 toroid --- sits at the receiver's antenna input;
 \item the USB cable leaves the shield through a bulkhead bonded to it;
@@ -94,7 +99,8 @@ and GPS cables;
 individually wrapped and grounded.
 \end{itemize}
 In between, in November 2025 in Cumbria, the Mini flew inside the shield with its antenna connector
-on a bonded bulkhead and the choke fitted, before the PM12S-4A and the aircraft ferrites.
+on a bonded bulkhead, the choke fitted and the whip trimmed, before the PM12S-4A and the aircraft
+ferrites.
 Section~\ref{sec:history} follows the noise through each of these stages.
 The full design, with the reasoning for each change, is in \texttt{hardware/emi-design.md} of the
 UAV-RT hub repository. None of the individual ferrites has yet been measured on its own.
@@ -122,11 +128,11 @@ the other, and the calibration in Section~\ref{sec:bench} converts both to dBm.
 \toprule
 Test & Date & Configuration & Receiver \\
 \midrule
-W & 2025-03-15 & Wellington test flights; Mini outside the shield on a USB extension with no ferrites, 15~ft coax, no choke; pulse logs only; 160.40~MHz & Mini, gain 20 \\
+W & 2025-03-15 & Wellington test flights; Mini outside the shield on a USB extension with no ferrites, 15~ft coax, no choke, PHW150C with its whip untrimmed (as on every March 2025 flight); pulse logs only; 160.40~MHz & Mini, gain 20 \\
 D2 & 2025-03-17 & Ponui Day 2, four flights; as W; 161.09~MHz & Mini, gain 20 \\
 Trip & 2025-03-18 to 23 & Ponui Days 3--8, 15 flights with detections; as D2 plus two snap-on ferrites on the USB extension; pulse logs & Mini, gain 20 \\
 P2, P3 & 2025-03-22 & Ponui Day 8 flights (UTC date); as Trip; IQ recordings & Mini, gain 20 \\
-C1, C2 & 2025-11-24 & Cumbria flights; Mini inside the shield on a bonded SMA bulkhead, choke + 15~ft coax, PHW150C, Castle BEC, no aircraft ferrites; 173.29 and 173.31~MHz & Mini, gain 21 \\
+C1, C2 & 2025-11-24 & Cumbria flights; Mini inside the shield on a bonded SMA bulkhead, choke + 15~ft coax, PHW150C trimmed to about 173~MHz, Castle BEC, no aircraft ferrites; 173.29 and 173.31~MHz & Mini, gain 21 \\
 F2, F3 & 2026-11-14 & Choke + 15~ft coax; steady at 53 and 45~m (175 and 150~ft), F2 with a 30~s hover & HF+ \\
 F5 & 2026-11-14 & No choke, 15~ft coax; steady at 28~m (90~ft) & HF+ \\
 F6 & 2026-11-14 & No choke, no coax extension; steady at 19~m (60~ft) & HF+ \\
@@ -136,7 +142,7 @@ Bench & 2026-11-18 & Signal generator into each receiver on the drone's Pi, moto
 \bottomrule
 \end{tabularx}
 \caption{Tests in this report. The 2026 flights and bench runs were at 160.172~MHz, the frequency of
-the last Ponui flight; the 2025 field data at the frequencies shown. No tag was transmitting during
+the last Ponui flight, with the antenna's whip trimmed to 160.45~MHz; the 2025 field data at the frequencies shown. No tag was transmitting during
 the 2026 flights; the 2025 flights were tracking live tags, whose pulses the estimator removes.}
 \label{tab:tests}
 \end{table}
@@ -492,7 +498,7 @@ Stage & What changed & Ground, motors off & Steady flight & Step in flight \\
 \midrule
 1. Ponui Day 2, Mar 2025 & Mini on a USB extension outside the shield, no ferrites, no choke (D2) & $-145.2$ & $-135.0$ & --- \\
 2. Ponui Days 3--8, Mar 2025 & Two snap-on ferrites on the USB extension (Trip; ground from P2, P3) & $-162.0$ & $-145.4$ & $-10.4$ dB \\
-3. Cumbria, Nov 2025 & Mini inside the shield on a bonded SMA bulkhead; choke on the coax (C1, C2) & $-165.2$ & $-158.2$ & $-12.8$ dB \\
+3. Cumbria, Nov 2025 & Mini inside the shield on a bonded SMA bulkhead; choke on the coax; antenna whip trimmed to frequency (C1, C2) & $-165.2$ & $-158.2$ & $-12.8$ dB \\
 4. Arizona, Nov 2026 & HF+ outside the shield via a bonded USB bulkhead; aircraft ferrites F1--F9; PM12S-4A regulator (F2, F3) & $-167.0$ & $-163.5$ & $-5.3$ dB \\
 \bottomrule
 \end{tabularx}
@@ -555,6 +561,26 @@ on a bonded USB bulkhead, the aircraft ferrites F1--F9 and the PM12S-4A regulato
 site and frequency changed. Together these took the in-flight noise from 9.4 to 3.3~dB above the
 receiver's own. The planned same-day Mini/HF+ flights will separate the receiver's share.
 
+\paragraph{The antenna at Ponui.}
+\label{sec:antenna}
+Every March 2025 flight used the PHW150C with its whip untrimmed, so the antenna was off tune at
+160--161~MHz by an amount not yet measured; a mismatch passes on only part of what the antenna
+receives. That cuts the tag's signal and any outside noise that arrives through the antenna in the
+usual way by the same amount, but not the receiver's own noise. Three consequences:
+\begin{itemize}
+\item \textbf{The Ponui noise would probably have read higher with a tuned antenna}, by up to the
+mismatch loss, and the reduction from Ponui to now is understated by about that much. Probably,
+not certainly: much of the Ponui noise rode on the outside of the coax, as common-mode current, and
+how a detuned whip changes that path is not simply the mismatch loss; it could go either way.
+\item \textbf{The USB-ferrite step is unaffected}: Day 2 and Days 3--8 used the same untrimmed whip.
+\item \textbf{At Ponui the detuning cost little detection range}, because the noise was 22--33~dB above
+the receiver's own: signal and noise fell together, leaving the signal-to-noise ratio about the same.
+Now that the noise is close to the receiver's own, a mismatch would cost its full amount, so tuning
+matters more now than it did then.
+\end{itemize}
+A NanoVNA sweep of an untrimmed whip, at 160.17 and 161.09~MHz on the same 15~ft coax, would give the
+mismatch loss. \draftnote{Add when measured.}
+
 \subsection{How much of what remains is the drone}
 \label{sec:budget}
 
@@ -583,7 +609,8 @@ surroundings or the drone heard by an antenna that now works. The planned mast t
 \draftnote{Update when the mast test is done.}
 
 At Ponui the inferred outside noise was about 30~dB above $kT_0$, far above any background level for
-a quiet island. That noise was the drone: on Day 2 it was there with the motors off, and two
+a quiet island, and more than that if the untrimmed whip's mismatch hid some of it
+(Section~\ref{sec:antenna}). That noise was the drone: on Day 2 it was there with the motors off, and two
 ferrites on the USB cable removed most of it (Section~\ref{sec:history}).
 
 \section{Caveats}
@@ -597,6 +624,9 @@ differ slightly, and Cumbria ran at gain 21 where Ponui ran at 20.
 \item \textbf{Pulse-log values.} Stage 2's in-flight value comes from the detector's own noise
 estimate, checked against the IQ recordings within 0.4~dB, but only for flights and moments with
 detections.
+\item \textbf{Antenna tuning.} The March 2025 flights used an untrimmed whip, off tune at 160--161~MHz
+by an unmeasured amount (Section~\ref{sec:antenna}). Cumbria's whip was trimmed to about 173~MHz, the
+2026 whip to 160.45~MHz.
 \item \textbf{Mini gain.} Ponui ran the Mini at gain 20; the calibration used 21. Likely 1--2~dB on
 the Ponui values.
 \item \textbf{Heights differed between configurations}: 45--53~m with the choke and 15~ft coax, 28~m

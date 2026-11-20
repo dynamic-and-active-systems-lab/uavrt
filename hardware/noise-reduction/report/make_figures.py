@@ -123,7 +123,7 @@ for i,(fa0,fb0) in enumerate(zip(fl[:-1],fl[1:])):
     ax.annotate(f"{fb0-fa0:+.1f} dB".replace("-","−"),((i+i+1)/2,(fa0+fb0)/2),xytext=(6,6),textcoords="offset points",ha="left",fontsize=8,color=INK,fontweight="bold")
 for i,v in enumerate(fl): ax.text(i-0.1,v,f"{v:.1f}".replace("-","−"),fontsize=7.5,color=INK2,va="center",ha="right")
 ax.text(3.27,own[3]-0.6,"receiver's\nown noise",fontsize=7,color=INK2,va="top",ha="left")
-labs=["Ponui Day 2\nMar 2025\nMini on USB ext.,\nno ferrites, no choke","Ponui Days 3–8\nMar 2025\n+ 2 snap-on ferrites\non the USB ext.","Cumbria\nNov 2025\nMini inside shield,\nbonded SMA, choke","Arizona\nNov 2026\nHF+, bonded USB,\nF1–F9, PM12S-4A"]
+labs=["Ponui Day 2\nMar 2025\nMini on USB ext.,\nno ferrites, no choke","Ponui Days 3–8\nMar 2025\n+ 2 snap-on ferrites\non the USB ext.","Cumbria\nNov 2025\nMini inside shield,\nbonded SMA, choke,\nwhip trimmed","Arizona\nNov 2026\nHF+, bonded USB,\nF1–F9, PM12S-4A"]
 ax.set_xticks(xs,labs,fontsize=7.3); ax.set_xlim(-0.5,3.75); ax.set_ylim(-170,-130); ax.grid(axis="x",visible=False)
 ax.set_ylabel("Noise at the receiver input (dBm/Hz)")
 ax.text(0.98,0.97,f"In flight: {fl[-1]-fl[0]:+.1f} dB overall".replace("-","−"),transform=ax.transAxes,ha="right",va="top",fontsize=9,color=INK,fontweight="bold")

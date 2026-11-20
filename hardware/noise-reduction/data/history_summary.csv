@@ -1,6 +1,6 @@
 id,label,date,site,freq_mhz,receiver,gain,configuration,ground_dBm_per_Hz,steady_dBm_per_Hz,source,ground_above_own_floor_db,steady_above_own_floor_db
-W,"Wellington test flights, no USB ferrites",2025-03-15,"Wellington, NZ",160.40,mini,20,"Mini outside the shield on a USB extension, no ferrites on it; 15 ft coax, no choke",,-137.4,"pulse logs, 2 flights",,30.18
-D2,"Ponui Day 2, no USB ferrites",2025-03-17,"Ponui Island, NZ",161.09,mini,20,"Mini outside the shield on a USB extension, no ferrites on it; 15 ft coax, no choke",-145.2,-134.95,"IQ, 4 flights",22.38,32.63
+W,"Wellington test flights, no USB ferrites",2025-03-15,"Wellington, NZ",160.40,mini,20,"Mini outside the shield on a USB extension, no ferrites on it; 15 ft coax, no choke; PHW150C whip untrimmed",,-137.4,"pulse logs, 2 flights",,30.18
+D2,"Ponui Day 2, no USB ferrites",2025-03-17,"Ponui Island, NZ",161.09,mini,20,"Mini outside the shield on a USB extension, no ferrites on it; 15 ft coax, no choke; PHW150C whip untrimmed",-145.2,-134.95,"IQ, 4 flights",22.38,32.63
 PT,"Ponui Days 3-8, USB ferrites",2025-03-18 to 23,"Ponui Island, NZ",160.17-161.09,mini,20,As Day 2 plus two snap-on ferrites on the USB extension,-162.01,-145.38,"pulse logs, 15 flights; ground from the Day 8 IQ (P2, P3)",5.57,22.2
-C1,Cumbria flight 1,2025-11-24,"Ambleside, UK",173.29-173.31,mini,21,"Mini inside the shield, bonded SMA bulkhead, choke, 15 ft coax, PHW150C; Castle BEC, no aircraft ferrites",-166.22,-158.69,IQ,1.36,8.89
+C1,Cumbria flight 1,2025-11-24,"Ambleside, UK",173.29-173.31,mini,21,"Mini inside the shield, bonded SMA bulkhead, choke, 15 ft coax, PHW150C trimmed to ~173 MHz; Castle BEC, no aircraft ferrites",-166.22,-158.69,IQ,1.36,8.89
 C2,Cumbria flight 2,2025-11-24,"Ambleside, UK",173.29-173.31,mini,21,As C1,-164.26,-157.72,IQ,3.32,9.86

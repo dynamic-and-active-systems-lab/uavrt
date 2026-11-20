@@ -1,5 +1,5 @@
 stage,label,change,receiver,steady_dBm_per_Hz,ground_dBm_per_Hz,own_dBm_per_Hz,notes
 1,"Ponui Day 2, Mar 2025",Mini on a USB extension outside the shield; no ferrites; no choke,mini,-135.0,-145.2,-167.58,
 2,"Ponui Days 3-8, Mar 2025",Two snap-on ferrites on the USB extension,mini,-145.4,-162.0,-167.58,"one change, same site, receiver and gain"
-3,"Cumbria, Nov 2025",Mini moved inside the shield on a bonded SMA bulkhead; common-mode choke on the coax,mini,-158.2,-165.2,-167.58,"also new site and frequency (173 MHz), gain 21"
+3,"Cumbria, Nov 2025",Mini moved inside the shield on a bonded SMA bulkhead; common-mode choke on the coax; antenna whip trimmed to frequency,mini,-158.2,-165.2,-167.58,"also new site and frequency (173 MHz), gain 21"
 4,"Arizona, Nov 2026",Airspy HF+ outside the shield via a bonded USB bulkhead; aircraft ferrites F1-F9; PM12S-4A regulator,hf,-163.5,-167.0,-166.76,"also new site, frequency and receiver"

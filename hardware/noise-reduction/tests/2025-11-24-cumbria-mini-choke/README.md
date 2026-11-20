@@ -6,7 +6,7 @@ log folders are named 2025-11-20.
 
 **Configuration (from Michael, 2026-11-19):** Airspy Mini inside the drone's RF shield, plugged into
 the Pi, its SMA connector brought out through the shield with the back shell bonded to it. The
-common-mode choke at that connector, then the 15 ft RG-316 extension and the PHW150C antenna. The
+common-mode choke at that connector, then the 15 ft RG-316 extension and the PHW150C antenna, its whip trimmed with a NanoVNA to about 173 MHz (exact frequency not recorded). The
 choke was fitted after the first day of the trip, so it is on every flight from 2025-11-18 to
 2025-11-24. Mini gain 21, the same setting as the 2026-11-18 bench calibration. Not yet fitted at
 Cumbria: the PM12S-4A (5 V came from the Castle BEC), the USB bulkhead (the Mini was inside, so no

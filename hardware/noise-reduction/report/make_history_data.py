@@ -59,16 +59,16 @@ for k, w in CW.items():
 # ---- Summary rows
 rows = [
     dict(id="W", label="Wellington test flights, no USB ferrites", date="2025-03-15", site="Wellington, NZ", freq_mhz="160.40", receiver="mini", gain=20,
-         configuration="Mini outside the shield on a USB extension, no ferrites on it; 15 ft coax, no choke", ground_dBm_per_Hz="",
+         configuration="Mini outside the shield on a USB extension, no ferrites on it; 15 ft coax, no choke; PHW150C whip untrimmed", ground_dBm_per_Hz="",
          steady_dBm_per_Hz=round(med(wg_flight), 2), source="pulse logs, 2 flights"),
     dict(id="D2", label="Ponui Day 2, no USB ferrites", date="2025-03-17", site="Ponui Island, NZ", freq_mhz="161.09", receiver="mini", gain=20,
-         configuration="Mini outside the shield on a USB extension, no ferrites on it; 15 ft coax, no choke", ground_dBm_per_Hz=round(med(d2_ground), 2),
+         configuration="Mini outside the shield on a USB extension, no ferrites on it; 15 ft coax, no choke; PHW150C whip untrimmed", ground_dBm_per_Hz=round(med(d2_ground), 2),
          steady_dBm_per_Hz=round(med(d2_flight), 2), source="IQ, 4 flights"),
     dict(id="PT", label="Ponui Days 3-8, USB ferrites", date="2025-03-18 to 23", site="Ponui Island, NZ", freq_mhz="160.17-161.09", receiver="mini", gain=20,
          configuration="As Day 2 plus two snap-on ferrites on the USB extension", ground_dBm_per_Hz=round((float(S["P2"]["ground_dBm_per_Hz"]) + float(S["P3"]["ground_dBm_per_Hz"])) / 2, 2),
          steady_dBm_per_Hz=round(pt_flight, 2), source="pulse logs, 15 flights; ground from the Day 8 IQ (P2, P3)"),
     dict(id="C1", label="Cumbria flight 1", date="2025-11-24", site="Ambleside, UK", freq_mhz="173.29-173.31", receiver="mini", gain=21,
-         configuration="Mini inside the shield, bonded SMA bulkhead, choke, 15 ft coax, PHW150C; Castle BEC, no aircraft ferrites",
+         configuration="Mini inside the shield, bonded SMA bulkhead, choke, 15 ft coax, PHW150C trimmed to ~173 MHz; Castle BEC, no aircraft ferrites",
          ground_dBm_per_Hz=cum["C1"]["ground"], steady_dBm_per_Hz=cum["C1"]["steady"], source="IQ"),
     dict(id="C2", label="Cumbria flight 2", date="2025-11-24", site="Ambleside, UK", freq_mhz="173.29-173.31", receiver="mini", gain=21,
          configuration="As C1", ground_dBm_per_Hz=cum["C2"]["ground"], steady_dBm_per_Hz=cum["C2"]["steady"], source="IQ"),
@@ -86,7 +86,7 @@ now_g = (float(S["F2"]["ground_dBm_per_Hz"]) + float(S["F3"]["ground_dBm_per_Hz"
 steps = [
     ("1", "Ponui Day 2, Mar 2025", "Mini on a USB extension outside the shield; no ferrites; no choke", "mini", R["D2"]["steady_dBm_per_Hz"], R["D2"]["ground_dBm_per_Hz"], ""),
     ("2", "Ponui Days 3-8, Mar 2025", "Two snap-on ferrites on the USB extension", "mini", R["PT"]["steady_dBm_per_Hz"], R["PT"]["ground_dBm_per_Hz"], "one change, same site, receiver and gain"),
-    ("3", "Cumbria, Nov 2025", "Mini moved inside the shield on a bonded SMA bulkhead; common-mode choke on the coax", "mini",
+    ("3", "Cumbria, Nov 2025", "Mini moved inside the shield on a bonded SMA bulkhead; common-mode choke on the coax; antenna whip trimmed to frequency", "mini",
      round((R["C1"]["steady_dBm_per_Hz"] + R["C2"]["steady_dBm_per_Hz"]) / 2, 2), round((R["C1"]["ground_dBm_per_Hz"] + R["C2"]["ground_dBm_per_Hz"]) / 2, 2), "also new site and frequency (173 MHz), gain 21"),
     ("4", "Arizona, Nov 2026", "Airspy HF+ outside the shield via a bonded USB bulkhead; aircraft ferrites F1-F9; PM12S-4A regulator", "hf", round(now_f, 2), round(now_g, 2), "also new site, frequency and receiver"),
 ]
