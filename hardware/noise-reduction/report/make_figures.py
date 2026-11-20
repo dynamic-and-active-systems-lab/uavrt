@@ -189,4 +189,15 @@ for ax,(fid,title) in zip(axs,(("F2","F2  choke + 15 ft coax"),("F3","F3  choke 
 axs[0].text(14,-151.5,"dashed verticals: motors start and stop; grey: height from the PX4 log",fontsize=7,color=INK2)
 axs[-1].set_xlabel("Seconds from Start Detection"); fig.tight_layout(h_pad=0.6); save(fig,"fig11_px4")
 
+# --- Fig 12: untrimmed vs trimmed whip, 2025-10-17
+AT=collections.defaultdict(lambda: ([],[]))
+for r in rd("antenna_tuning.csv"): AT[r["flight"]][0].append(float(r["floor_dBm_per_Hz"])); AT[r["flight"]][1].append(float(r["tag_peak_dBm"]))
+fig,axs=plt.subplots(2,1,figsize=(6.6,5.2),sharex=True)
+for k,col,lab in (("untrimmed",C["orange"],"Whip as sold (untrimmed)"),("trimmed_160",C["blue"],"Whip trimmed to 160 MHz")):
+    axs[0].plot(AT[k][0],color=col,lw=1.2,label=lab); axs[1].plot(np.maximum(AT[k][1],-125),color=col,lw=1.0,label=lab)
+floorline(axs[0],NM,"Mini's own noise"); axs[0].set_ylim(-170,-138); axs[0].set_ylabel("Noise, dBm/Hz"); axs[0].legend(loc="upper right",fontsize=7.5)
+axs[0].set_title("A. Noise floor",loc="left"); axs[1].set_title("B. Tag pulse power (strongest 17 ms in each second)",loc="left")
+axs[1].set_ylim(-125,-65); axs[1].set_ylabel("dBm at receiver input"); axs[1].set_xlabel("Seconds from Start Detection")
+fig.tight_layout(); save(fig,"fig12_antenna_tuning")
+
 print(json.dumps({"external_now":b["now"],"external_ponui":b["ponui"],"fam":fam},default=float,indent=0))

@@ -26,6 +26,7 @@ Tests so far:
 | `tests/2026-11-17-vna-cables/` | NanoVNA loss and match of the 15 ft RG-316, the choke, and the bench cable. Includes the S2P files. |
 | `tests/2026-11-18-bench-mini-vs-hf/` | Signal-generator calibration of the Airspy Mini and HF+: noise figure, units, strong-signal behaviour. |
 | `tests/2025-11-24-cumbria-mini-choke/` | Cumbria fieldwork, last two flights: Mini inside the shield with the choke. |
+| `tests/2025-10-17-antenna-tuning/` | Two flights minutes apart, untrimmed whip then whip trimmed to 160 MHz: 9.4 dB less noise in flight with the trimmed whip. |
 | `tests/2025-03-ponui-usb-ferrites/` | Ponui Day 2 (no USB ferrites) against the later Ponui flights (with them): −10.5 dB in flight, −17 to −20 dB motors off. Also every flight of the trip from the pulse logs, and the cabin captures. |
 
 The Ponui reference flights in the report (2025-03-22 UTC) are read directly from their recordings.
@@ -42,15 +43,15 @@ same-day A/B comparison yet.
 | Nov 2025, Cumbria | Mini inside the shield on the Pi; SMA bulkhead with the back shell bonded to the shield | Choke at the bulkhead (from the second day), 15 ft RG-316, PHW150C trimmed to about 173 MHz | Castle BEC; no ferrites | about −158 |
 | Since Cumbria; measured Nov 2026 | Airspy HF+ outside the shield, through a bonded USB bulkhead | Choke, 15 ft RG-316, PHW150C trimmed to 160.45 MHz | PM12S-4A in place of the Castle BEC; ferrites F1–F9 and the rest of `../emi-design.md` | −163.5 |
 
-The untrimmed whip at Ponui means the Ponui noise would probably have read higher with a tuned
-antenna, so the reduction since then is probably understated; the USB-ferrite step is unaffected,
-since Day 2 and Days 3–8 used the same whip. Not yet measured: the untrimmed whip's mismatch at
-160–161 MHz. See the report, "The antenna at Ponui".
+The untrimmed whip at Ponui probably added noise: in a same-day A/B test on 2025-10-17 the untrimmed
+whip read 9.4 dB more noise in flight than one trimmed to 160 MHz (`tests/2025-10-17-antenna-tuning/`).
+The whip was trimmed before Cumbria, so the Ponui-to-Cumbria step includes it. The USB-ferrite step is
+unaffected, since Day 2 and Days 3–8 used the same whip.
 
 ## Raw data
 
 Recordings stay in OneDrive `FLIGHT_TESTING_DATA/`, too large for git:
-`2025-03-16-Ponui-Day1-Sun`, `2025-03-17-Ponui-Day2-Mon`, `2025-03-23-Ponui-Day8-Sun`, `2025-11-24-Cumbria-Day8-Mon`,
+`2025-03-16-Ponui-Day1-Sun`, `2025-03-17-Ponui-Day2-Mon`, `2025-10-17-Track_and_Field_Range_173MHz_Flights`, `2025-03-23-Ponui-Day8-Sun`, `2025-11-24-Cumbria-Day8-Mon`,
 `2026-11-14-Rail-X_Ranch_Road`, `2026-11-18-Office_HF_v_Mini_Testing`.
 
 ## Rebuilding
